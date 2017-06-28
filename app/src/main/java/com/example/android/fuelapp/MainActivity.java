@@ -22,18 +22,23 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.awareness.Awareness;
+import com.google.android.gms.awareness.snapshot.PlacesResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.PlaceLikelihood;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -110,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         mostTimesFuelTextView = (TextView) findViewById(R.id.most_used_fuel_cost);
         previousFuelTextView = (TextView) findViewById(R.id.last_fuel_cost);
 
-        fillButton=(Button) findViewById(R.id.fill_fuel_button);
+        fillButton = (Button) findViewById(R.id.fill_fuel_button);
 
         if (!GooglePlayServicesAvailable()) {
             finish();
@@ -120,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
+                .addApi(Awareness.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
@@ -129,21 +135,19 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             @Override
             public void onClick(View v) {
                 updateUI();
+                getPlace();
             }
         });
 
 
     }
 
-    private void updateUI()
-    {
-        if(mCurrentLocation!=null){
-            String lat= String.valueOf(mCurrentLocation.getLatitude());
-            String lng= String.valueOf(mCurrentLocation.getLongitude());
-            currentFuelTextview.setText(lat+", "+lng+", "+mLastUpdateTime);
-        }
-        else
-        {
+    private void updateUI() {
+        if (mCurrentLocation != null) {
+            String lat = String.valueOf(mCurrentLocation.getLatitude());
+            String lng = String.valueOf(mCurrentLocation.getLongitude());
+            currentFuelTextview.setText(lat + ", " + lng + ", " + mLastUpdateTime);
+        } else {
             Toast.makeText(getApplicationContext(), "mCurrentLocation is null", Toast.LENGTH_SHORT).show();
         }
     }
@@ -196,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         updateUI();
+        getPlace();
     }
 
 
@@ -221,8 +226,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         Log.d(TAG, "Location update started ..............: ");
     }
 
-    protected void stopLocationUpdates()
-    {
+    protected void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (com.google.android.gms.location.LocationListener) this);
     }
 
@@ -234,8 +238,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onResume() {
         super.onResume();
-        if(mGoogleApiClient.isConnected())
-        {
+        if (mGoogleApiClient.isConnected()) {
             startLocationUpdates();
         }
     }
@@ -243,5 +246,39 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+
+    protected void getPlace() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
+            return;
+        }
+        Awareness.SnapshotApi.getPlaces(mGoogleApiClient).setResultCallback(new ResultCallback<PlacesResult>() {
+            @Override
+            public void onResult(@NonNull PlacesResult placesResult) {
+                if (!placesResult.getStatus().isSuccess()) {
+                    Log.e(TAG, "Could not get places");
+                    return;
+                }
+                List<PlaceLikelihood> placeLikelihoodList = placesResult.getPlaceLikelihoods();
+                if (placeLikelihoodList != null) {
+
+                    for (int i = 0; i < placeLikelihoodList.size() && i < 5; i++) {
+                        PlaceLikelihood p = placeLikelihoodList.get(i);
+                        Log.d(TAG, p.getPlace().getName().toString() +",place type: "+p.getPlace().getPlaceTypes().contains(41));
+                    }
+                } else {
+                    Log.d(TAG, "Place is null");
+                }
+            }
+        });
     }
 }
