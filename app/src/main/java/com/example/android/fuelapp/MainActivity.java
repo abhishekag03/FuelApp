@@ -1,8 +1,6 @@
 package com.example.android.fuelapp;
 
-import android.*;
 import android.Manifest;
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -152,6 +150,11 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         }
     }
 
+    /*  Returns a dialog to address the provided errorCode. The returned dialog displays a localized
+     message about the error and upon user confirmation (by tapping on dialog) will direct them to
+     the Play Store if Google Play services is out of date or missing, or to system settings if
+     Google Play services is disabled on the device.
+     */
     private boolean GooglePlayServicesAvailable() {
         GoogleApiAvailability googleApi = GoogleApiAvailability.getInstance();
         int status = googleApi.isGooglePlayServicesAvailable(this);
@@ -243,9 +246,11 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         }
     }
 
+    // TODO: Add on pause and call stopLocationUpdates()
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        // TODO: Show an alert/toast about the connectivity status
     }
 
 
@@ -273,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
                     for (int i = 0; i < placeLikelihoodList.size() && i < 5; i++) {
                         PlaceLikelihood p = placeLikelihoodList.get(i);
-                        Log.d(TAG, p.getPlace().getName().toString() +",place type: "+p.getPlace().getPlaceTypes().contains(41));
+                        Log.d(TAG, p.getPlace().getName().toString() + ",place type: " + p.getPlace().getPlaceTypes().contains(41));
                     }
                 } else {
                     Log.d(TAG, "Place is null");

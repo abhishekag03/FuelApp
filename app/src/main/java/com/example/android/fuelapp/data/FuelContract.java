@@ -12,7 +12,7 @@ public class FuelContract
 
     public static final String AUTHORITY ="com.example.android.fuelapp";
 
-    public static final Uri BASE_CONTENT_URI= Uri.parse("conotent://"+AUTHORITY);
+    public static final Uri BASE_CONTENT_URI= Uri.parse("content://"+AUTHORITY);
 
     public static final String PATH_FUEL="fuel";
 
