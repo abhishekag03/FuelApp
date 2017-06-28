@@ -18,7 +18,6 @@ public class FuelContract
 
     public static final class FuelEntry implements BaseColumns
     {
-
         public static final Uri CONTENT_URI =BASE_CONTENT_URI.buildUpon().appendPath(PATH_FUEL).build();
 
         public static final String TABLE_NAME="fuel";

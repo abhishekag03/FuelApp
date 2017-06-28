@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity
     {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permission) != PackageManager.PERMISSION_GRANTED)
         {
-
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, permission)) {
 

@@ -23,7 +23,6 @@ public class FuelDbHelper extends SQLiteOpenHelper
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-
         final String CREATE_TABLE;
 
         CREATE_TABLE= "CREATE TABLE "+ FuelContract.FuelEntry.TABLE_NAME+" ( "
