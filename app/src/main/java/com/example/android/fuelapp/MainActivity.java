@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.provider.Settings;
@@ -44,6 +45,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.PlaceLikelihood;
+import com.google.android.gms.vision.text.Text;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -71,9 +73,18 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
     private EditText currentFuelTextview;
     private TextView currentLitresTextView;
+    private TextView currentRateTextView;
     private TextView favouriteFuelTextView;
-    private TextView mostTimesFuelTextView;
-    private TextView previousFuelTextView;
+    private TextView frequentFuelTextView;
+    private TextView lastUsedFuelTextView;
+
+
+    private TextView priceHolder;
+    private TextView litresHolder;
+    private TextView rateHolder;
+    private TextView favouriteHolder;
+    private TextView frequentHolder;
+    private TextView lastUsedHolder;
 
     private FloatingActionButton fillButton;
 
@@ -125,8 +136,41 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         getSupportActionBar().hide();
 
 
+
+
+        priceHolder=(TextView) findViewById(R.id.price_text_view);
+        litresHolder=(TextView) findViewById(R.id.litres_text_view);
+        rateHolder=(TextView) findViewById(R.id.rate_text_view);
+        favouriteHolder=(TextView) findViewById(R.id.favourite_text_view);
+        frequentHolder=(TextView) findViewById(R.id.frequent_text_view);
+        lastUsedHolder=(TextView) findViewById(R.id.last_used_text_view);
+
+        Typeface oratorSTD=Typeface.createFromAsset(getAssets(), "fonts/OratorStd.otf");
+        Typeface segment7=Typeface.createFromAsset(getAssets(), "fonts/Segment7Standard.otf");
+
+        priceHolder.setTypeface(oratorSTD);
+        litresHolder.setTypeface(oratorSTD);
+        rateHolder.setTypeface(oratorSTD);
+        favouriteHolder.setTypeface(oratorSTD);
+        frequentHolder.setTypeface(oratorSTD);
+        lastUsedHolder.setTypeface(oratorSTD);
+
+
         currentFuelTextview=(EditText) findViewById(R.id.current_fuel_cost);
         currentLitresTextView=(TextView) findViewById(R.id.current_fuel_litres);
+        currentRateTextView=(TextView) findViewById(R.id.current_fuel_rate);
+        favouriteFuelTextView=(TextView) findViewById(R.id.favourite_fuel_cost);
+        frequentFuelTextView=(TextView) findViewById(R.id.most_used_fuel_cost);
+        lastUsedFuelTextView=(TextView) findViewById(R.id.last_fuel_cost);
+
+
+        currentFuelTextview.setTypeface(segment7);
+        currentRateTextView.setTypeface(segment7);
+        currentLitresTextView.setTypeface(segment7);
+        favouriteFuelTextView.setTypeface(segment7);
+        frequentFuelTextView.setTypeface(segment7);
+        lastUsedFuelTextView.setTypeface(segment7);
+
 
         currentFuelTextview.addTextChangedListener(new TextWatcher() {
             @Override
