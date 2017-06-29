@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -22,9 +23,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
+import android.support.v7.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -32,6 +36,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.awareness.Awareness;
 import com.google.android.gms.awareness.snapshot.PlacesResult;
 import com.google.android.gms.common.ConnectionResult;
@@ -47,14 +57,18 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.vision.text.Text;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final int REQUEST_LOCATION_PERMISSION = 122;
+
 
     public String TAG = "database";
 
@@ -68,7 +82,12 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
     private String CURRENT_LOCATION;
     private int CURRENT_COST;
+    private double CURRENT_RATE;
+    private String CURRENT_FUEL_TYPE;
     private double CURRENT_LITRES;
+    private String CURRENT_FAVOURITE;
+
+    private static boolean preferencesUpdated=false;
 
 
     private EditText currentFuelTextview;
@@ -133,8 +152,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_secondary1);
-        getSupportActionBar().hide();
-
+        //getSupportActionBar().hide();
 
 
 
@@ -172,12 +190,24 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         lastUsedFuelTextView.setTypeface(segment7);
 
 
+
+        getCurrentRate();
+
+
+        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+        CURRENT_FUEL_TYPE=sharedPreferences.getString("FuelType", "Petrol");
+        CURRENT_FAVOURITE=sharedPreferences.getString("favourite", "100");
+
+        favouriteFuelTextView.setText(CURRENT_FAVOURITE);
+
         currentFuelTextview.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 if(s.length()>0){
                     CURRENT_COST=Integer.parseInt(stripNonDigits(s.toString().trim()));
-                    CURRENT_LITRES= CURRENT_COST/64.2;
+                    CURRENT_LITRES= CURRENT_COST/CURRENT_RATE;
                 }
             }
 
@@ -186,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
                 currentLitresTextView.setText(String.valueOf(String.format("%.2f", CURRENT_LITRES)));
                 if (s.length() > 0) {
                     CURRENT_COST = Integer.parseInt(stripNonDigits(s.toString().trim()));
-                    CURRENT_LITRES = CURRENT_COST / 64.2;
+                    CURRENT_LITRES = CURRENT_COST / CURRENT_RATE;
                     Log.d(TAG, CURRENT_COST + " " + CURRENT_LITRES);
                 }
             }
@@ -196,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
              if(s.length()>0){
                 currentLitresTextView.setText(String.valueOf(String.format("%.2f",CURRENT_LITRES)));
                 CURRENT_COST=Integer.parseInt(stripNonDigits(s.toString().trim()));
-                CURRENT_LITRES= CURRENT_COST/64.2;
+                CURRENT_LITRES= CURRENT_COST/CURRENT_RATE;
                 Log.d(TAG, CURRENT_COST+" "+CURRENT_LITRES);
             }
 
@@ -238,6 +268,8 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
 
     }
+
+
 
     private void sendNotification()
     {
@@ -305,8 +337,18 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     protected void onStart() {
         super.onStart();
         //mGoogleApiClient.connect();
+        if(preferencesUpdated)
+        {
+            preferencesUpdated=false;
+        }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferences sharedPreferences= android.preference.PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+    }
 
     @Override
     protected void onStop() {
@@ -442,4 +484,74 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         return sb.toString();
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id=item.getItemId();
+
+        if(id==R.id.action_settings)
+        {
+            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void getCurrentRate()
+    {
+            String Url="http://fuelpriceindia.herokuapp.com/price?city=hyderabad";
+            RequestQueue queue= Volley.newRequestQueue(this);
+            JsonObjectRequest getRequest= new JsonObjectRequest(Request.Method.GET, Url, null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d(TAG, response.toString());
+
+                    try {
+
+                        if(CURRENT_FUEL_TYPE.equals("Petrol"))
+                            CURRENT_RATE=Double.parseDouble(response.getString("petrol"));
+                        else
+                            CURRENT_RATE=Double.parseDouble(response.getString("diesel"));
+                        currentRateTextView.setText((String.valueOf(CURRENT_RATE)));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d(TAG, e.toString());
+                    }
+
+                }
+            },
+
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.d(TAG, error.toString());
+                        }
+                    }
+
+
+            );
+            queue.add(getRequest);
+
+
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+
+        preferencesUpdated=true;
+        CURRENT_FUEL_TYPE=sharedPreferences.getString("FuelType", "thug");
+        Log.d(TAG, CURRENT_FUEL_TYPE);
+        CURRENT_FAVOURITE=sharedPreferences.getString("favourite", "100");
+        favouriteFuelTextView.setText(CURRENT_FAVOURITE);
+
+        getCurrentRate();
+    }
 }

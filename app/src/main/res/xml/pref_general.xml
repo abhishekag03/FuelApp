@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditTextPreference
+        android:defaultValue="100"
+        android:inputType="text"
+        android:key="favourite"
+        android:singleLine="true"
+        android:title="Favourite" />
+
+    <ListPreference
+        android:defaultValue="Petrol"
+        android:entries="@array/pref_units_options"
+        android:entryValues="@array/pref_units_values"
+        android:key="FuelType"
+        android:title="Fuel Type" />
+
+</PreferenceScreen>
