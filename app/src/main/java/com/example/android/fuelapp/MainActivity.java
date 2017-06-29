@@ -1,22 +1,33 @@
 package com.example.android.fuelapp;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.NotificationCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +46,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.PlaceLikelihood;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -52,13 +64,18 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     private Location mCurrentLocation;
     private String mLastUpdateTime;
 
+    private String CURRENT_LOCATION;
+    private int CURRENT_COST;
+    private double CURRENT_LITRES;
 
-    private TextView currentFuelTextview;
+
+    private EditText currentFuelTextview;
+    private TextView currentLitresTextView;
     private TextView favouriteFuelTextView;
     private TextView mostTimesFuelTextView;
     private TextView previousFuelTextView;
 
-    private Button fillButton;
+    private FloatingActionButton fillButton;
 
     private void askForPermission(final String permission, final Integer requestCode) {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -104,39 +121,97 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
+        setContentView(R.layout.activity_main_secondary1);
+        getSupportActionBar().hide();
 
 
-        currentFuelTextview = (TextView) findViewById(R.id.current_fuel_cost);
-        favouriteFuelTextView = (TextView) findViewById(R.id.favourite_fuel_cost);
-        mostTimesFuelTextView = (TextView) findViewById(R.id.most_used_fuel_cost);
-        previousFuelTextView = (TextView) findViewById(R.id.last_fuel_cost);
+        currentFuelTextview=(EditText) findViewById(R.id.current_fuel_cost);
+        currentLitresTextView=(TextView) findViewById(R.id.current_fuel_litres);
 
-        fillButton = (Button) findViewById(R.id.fill_fuel_button);
-
-        if (!GooglePlayServicesAvailable()) {
-            finish();
-        }
-
-        createLocationRequest();
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addApi(Awareness.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-
-        fillButton.setOnClickListener(new View.OnClickListener() {
+        currentFuelTextview.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onClick(View v) {
-                updateUI();
-                getPlace();
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                if(s.length()>0){
+                    CURRENT_COST=Integer.parseInt(stripNonDigits(s.toString().trim()));
+                    CURRENT_LITRES= CURRENT_COST/64.2;
+                }
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                currentLitresTextView.setText(String.valueOf(String.format("%.2f", CURRENT_LITRES)));
+                if (s.length() > 0) {
+                    CURRENT_COST = Integer.parseInt(stripNonDigits(s.toString().trim()));
+                    CURRENT_LITRES = CURRENT_COST / 64.2;
+                    Log.d(TAG, CURRENT_COST + " " + CURRENT_LITRES);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+             if(s.length()>0){
+                currentLitresTextView.setText(String.valueOf(String.format("%.2f",CURRENT_LITRES)));
+                CURRENT_COST=Integer.parseInt(stripNonDigits(s.toString().trim()));
+                CURRENT_LITRES= CURRENT_COST/64.2;
+                Log.d(TAG, CURRENT_COST+" "+CURRENT_LITRES);
+            }
+
             }
         });
 
+//        askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
+//
+//
+//        currentFuelTextview = (TextView) findViewById(R.id.current_fuel_cost);
+//        favouriteFuelTextView = (TextView) findViewById(R.id.favourite_fuel_cost);
+//        mostTimesFuelTextView = (TextView) findViewById(R.id.most_used_fuel_cost);
+//        previousFuelTextView = (TextView) findViewById(R.id.last_fuel_cost);
+//
+//        fillButton = (FloatingActionButton) findViewById(R.id.fill_fuel_button);
+//
+//        if (!GooglePlayServicesAvailable()) {
+//            finish();
+//        }
+//
+//        createLocationRequest();
+//
+//        mGoogleApiClient = new GoogleApiClient.Builder(this)
+//                .addApi(LocationServices.API)
+//                .addApi(Awareness.API)
+//                .addConnectionCallbacks(this)
+//                .addOnConnectionFailedListener(this)
+//                .build();
+//
+//
+//        fillButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                updateUI();
+//                getPlace();
+//                sendNotification();
+//            }
+//        });
+
+
+    }
+
+    private void sendNotification()
+    {
+        android.support.v4.app.NotificationCompat.Builder mBuilder= new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle("First Notification")
+                .setContentText("hello world");
+
+        Intent resultIntent= new Intent(this, MainActivity.class);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder.setContentIntent(resultPendingIntent);
+
+        int mNotificationId= 001;
+
+        NotificationManager mNotifymgr= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        mNotifymgr.notify(mNotificationId, mBuilder.build());
 
     }
 
@@ -144,8 +219,24 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         if (mCurrentLocation != null) {
             String lat = String.valueOf(mCurrentLocation.getLatitude());
             String lng = String.valueOf(mCurrentLocation.getLongitude());
-            currentFuelTextview.setText(lat + ", " + lng + ", " + mLastUpdateTime);
+            currentFuelTextview.setText(CURRENT_LOCATION+" "+ mLastUpdateTime);
         } else {
+
+
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog.setMessage("Location Permission is required for this app to work. Please turn on location");
+            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                }
+            });
+            alertDialog.setNegativeButton("Cancel", null);
+            AlertDialog a = alertDialog.create();
+            a.show();
+            Window window = a.getWindow();
+            window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+
             Toast.makeText(getApplicationContext(), "mCurrentLocation is null", Toast.LENGTH_SHORT).show();
         }
     }
@@ -169,14 +260,14 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
+        //mGoogleApiClient.connect();
     }
 
 
     @Override
     protected void onStop() {
         super.onStop();
-        mGoogleApiClient.disconnect();
+        //mGoogleApiClient.disconnect();
     }
 
 
@@ -241,31 +332,28 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onResume() {
         super.onResume();
-        if (mGoogleApiClient.isConnected()) {
-            startLocationUpdates();
-        }
+//        if (mGoogleApiClient.isConnected()) {
+//            startLocationUpdates();
+//        }
     }
 
-    // TODO: Add on pause and call stopLocationUpdates()
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         // TODO: Show an alert/toast about the connectivity status
+
+        Toast.makeText(getApplicationContext(), "You are not connected to the internet right now. Please try again.", Toast.LENGTH_SHORT).show();
     }
 
 
     protected void getPlace() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+
             askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
             return;
         }
+
+
         Awareness.SnapshotApi.getPlaces(mGoogleApiClient).setResultCallback(new ResultCallback<PlacesResult>() {
             @Override
             public void onResult(@NonNull PlacesResult placesResult) {
@@ -276,14 +364,38 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
                 List<PlaceLikelihood> placeLikelihoodList = placesResult.getPlaceLikelihoods();
                 if (placeLikelihoodList != null) {
 
-                    for (int i = 0; i < placeLikelihoodList.size() && i < 5; i++) {
+                    CURRENT_LOCATION=placeLikelihoodList.get(0).getPlace().getName().toString();
+
+                    for (int i = 0; i < placeLikelihoodList.size(); i++) {
                         PlaceLikelihood p = placeLikelihoodList.get(i);
-                        Log.d(TAG, p.getPlace().getName().toString() + ",place type: " + p.getPlace().getPlaceTypes().contains(41));
+                        Log.d(TAG, p.getPlace().getName().toString() +",place type: "+p.getPlace().getPlaceTypes().contains(41));
+
+
+
+                        if(p.getPlace().getPlaceTypes().contains(41)){
+                            Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 } else {
                     Log.d(TAG, "Place is null");
                 }
+
             }
         });
+
     }
+
+    public static String stripNonDigits(
+            final CharSequence input ){
+        final StringBuilder sb = new StringBuilder(
+                input.length() );
+        for(int i = 0; i < input.length(); i++){
+            final char c = input.charAt(i);
+            if(c > 47 && c < 58){
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
 }

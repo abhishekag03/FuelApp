@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FuelApp</string>
+    <string name="title_activity_main1">Main1Activity</string>
 </resources>
