@@ -434,8 +434,8 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             lastItemCost = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_MONEY));
             cursor.moveToNext();
         }
-        lastUsedFuelTextView.setText("₹"+lastItemCost);
-        currentFuelTextview.setText("₹"+lastItemCost);
+        lastUsedFuelTextView.setText("₹"+removeAfterDecimalPoint(lastItemCost));
+        currentFuelTextview.setText("₹"+removeAfterDecimalPoint(lastItemCost));
 
         favouriteFuelTextView.setText("₹"+CURRENT_FAVOURITE);
 
@@ -447,6 +447,22 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
         database.close();
 
+    }
+
+
+    private String removeAfterDecimalPoint(String x)
+    {
+        String out="";
+        int i=0;
+        while(i<x.length())
+        {
+            if(x.charAt(i)!='.')
+                out+=x.charAt(i);
+            else
+                break;
+            i++;
+        }
+        return  out;
     }
 
     @Override
