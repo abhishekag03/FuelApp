@@ -233,38 +233,32 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             }
         });
 
-//        askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
-//
-//
-//        currentFuelTextview = (TextView) findViewById(R.id.current_fuel_cost);
-//        favouriteFuelTextView = (TextView) findViewById(R.id.favourite_fuel_cost);
-//        mostTimesFuelTextView = (TextView) findViewById(R.id.most_used_fuel_cost);
-//        previousFuelTextView = (TextView) findViewById(R.id.last_fuel_cost);
-//
-//        fillButton = (FloatingActionButton) findViewById(R.id.fill_fuel_button);
-//
-//        if (!GooglePlayServicesAvailable()) {
-//            finish();
-//        }
-//
-//        createLocationRequest();
-//
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addApi(LocationServices.API)
-//                .addApi(Awareness.API)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .build();
-//
-//
-//        fillButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                updateUI();
-//                getPlace();
-//                sendNotification();
-//            }
-//        });
+        askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
+
+
+
+        fillButton = (FloatingActionButton) findViewById(R.id.fill_fuel_button);
+
+        if (!GooglePlayServicesAvailable()) {
+            finish();
+        }
+
+        createLocationRequest();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addApi(Awareness.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+
+        fillButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
 
 
     }
@@ -336,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onStart() {
         super.onStart();
-        //mGoogleApiClient.connect();
+        mGoogleApiClient.connect();
         if(preferencesUpdated)
         {
             preferencesUpdated=false;
@@ -353,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onStop() {
         super.onStop();
-        //mGoogleApiClient.disconnect();
+        mGoogleApiClient.disconnect();
     }
 
 
@@ -379,7 +373,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-        updateUI();
+        //updateUI();
         getPlace();
     }
 
@@ -392,13 +386,6 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     protected void startLocationUpdates() {
         Log.d(TAG, String.valueOf(this instanceof LocationListener));
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
             return;
         }
@@ -418,15 +405,29 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onResume() {
         super.onResume();
-//        if (mGoogleApiClient.isConnected()) {
-//            startLocationUpdates();
-//        }
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
     }
 
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // TODO: Show an alert/toast about the connectivity status
+
+
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setMessage("You are not connected to the internet right now. Please try again later.");
+        alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        alertDialog.setNegativeButton("Cancel", null);
+        AlertDialog a = alertDialog.create();
+        a.show();
+        Window window = a.getWindow();
+        window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+
 
         Toast.makeText(getApplicationContext(), "You are not connected to the internet right now. Please try again.", Toast.LENGTH_SHORT).show();
     }

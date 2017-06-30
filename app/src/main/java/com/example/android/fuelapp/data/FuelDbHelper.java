@@ -29,6 +29,7 @@ public class FuelDbHelper extends SQLiteOpenHelper
                 + FuelContract.FuelEntry._ID+" INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + FuelContract.FuelEntry.COLUMN_TIME_FILLED+" TEXT NOT NULL, "
                 + FuelContract.FuelEntry.COLUMN_MONEY+" TEXT NOT NULL, "
+                + FuelContract.FuelEntry.COLUMN_FUEL_TYPE+" TEXT NOT NULL, "
                 + FuelContract.FuelEntry.COLUMN_LITRES+" INTEGER NOT NULL, "
                 + FuelContract.FuelEntry.COLUMN_LATITUDE+" TEXT NOT NULL, "
                 + FuelContract.FuelEntry.COLUMN_LONGITUDE+" TEXT NOT NULL "

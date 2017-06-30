@@ -26,6 +26,8 @@ public class FuelContract
 
         public static final String COLUMN_MONEY="money";
 
+        public static final String COLUMN_FUEL_TYPE="fuel_type";
+
         public static final String COLUMN_LITRES="litres";
 
         public static final String COLUMN_LATITUDE="latitude";
