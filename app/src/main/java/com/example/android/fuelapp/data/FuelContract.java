@@ -34,6 +34,8 @@ public class FuelContract
 
         public static final String COLUMN_LONGITUDE="longitude";
 
+        public static final String COLUMN_LOCATION="location";
+
     }
 
 }

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+
+    <com.github.vipulasri.timelineview.TimelineView
+        android:id="@+id/time_marker"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        app:markerSize="20dp"
+        app:lineSize="3dp"
+        app:marker="@drawable/ic_marker"
+        android:layout_marginLeft="10dp"
+        app:line="@android:color/white"/>
+
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_height="75dp"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="20dp">
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:layout_weight="1"
+            android:fontFamily="casual"
+            android:textColor="@color/black"
+            android:id="@+id/fuel_station_date"
+            android:gravity="center"
+            android:layout_gravity="center"
+            />
+
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:layout_weight="1"
+            android:fontFamily="casual"
+            android:id="@+id/fuel_station_fuel_type"
+            android:textColor="@color/black"
+            android:layout_gravity="start"
+            android:gravity="center"/>
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="15sp"
+                    android:layout_weight="1"
+                    android:fontFamily="casual"
+                    android:id="@+id/fuel_station_fuel_price"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center"
+                    android:gravity="center"/>
+
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="15sp"
+                    android:layout_weight="1"
+                    android:fontFamily="casual"
+                    android:id="@+id/fuel_station_fuel_rate"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center"
+                    android:gravity="center"/>
+
+
+
+            </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:id="@+id/fuel_station_location"
+            android:layout_weight="1"
+            android:fontFamily="casual"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textColor="@color/black"/>
+
+
+        </LinearLayout>
+
+    </android.support.v7.widget.CardView>
+
+
+
+</LinearLayout>

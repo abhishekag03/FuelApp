@@ -5,10 +5,13 @@ import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
@@ -42,6 +45,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.android.fuelapp.data.FuelContract;
+import com.example.android.fuelapp.data.FuelDbHelper;
 import com.google.android.gms.awareness.Awareness;
 import com.google.android.gms.awareness.snapshot.PlacesResult;
 import com.google.android.gms.common.ConnectionResult;
@@ -61,6 +66,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -70,7 +76,16 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     private static final int REQUEST_LOCATION_PERMISSION = 122;
 
 
+    public static List<String> arrayForTimelineFuelType=new ArrayList<>();
+    public static List<String> arrayForTimelineDate=new ArrayList<>();
+    public static List<String> arrayForTimelineLocation=new ArrayList<>();
+
     public String TAG = "database";
+
+
+    public final static String EXTRA_ORIENTATION = "EXTRA_ORIENTATION";
+    public final static String EXTRA_WITH_LINE_PADDING = "EXTRA_WITH_LINE_PADDING";
+
 
     private static final long INTERVAL = 10000;
     private static final long FASTEST_INTERVAL = 5000;
@@ -81,7 +96,9 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     private String mLastUpdateTime;
 
     private String CURRENT_LOCATION;
-    private int CURRENT_COST;
+    private double CURRENT_COST;
+    private long CURRENT_LATITUDE;
+    private long CURRENT_LONGITUDE;
     private double CURRENT_RATE;
     private String CURRENT_FUEL_TYPE;
     private double CURRENT_LITRES;
@@ -135,7 +152,8 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{permission}, requestCode);
             }
         } else {
-            Toast.makeText(this, "" + permission + " is already granted.", Toast.LENGTH_SHORT).show();
+           // Toast.makeText(this, "" + permission + " is already granted.", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, ""+permission+" is already granted. ");
         }
     }
 
@@ -190,8 +208,13 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         lastUsedFuelTextView.setTypeface(segment7);
 
 
+        CURRENT_COST=Double.parseDouble(currentFuelTextview.getText().toString());
+        CURRENT_LITRES=Double.parseDouble(currentLitresTextView.getText().toString());
+        CURRENT_RATE=Double.parseDouble(currentRateTextView.getText().toString());
 
-        getCurrentRate();
+        //getCurrentRate();
+        getAllData();
+
 
 
         SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
@@ -200,21 +223,26 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         CURRENT_FUEL_TYPE=sharedPreferences.getString("FuelType", "Petrol");
         CURRENT_FAVOURITE=sharedPreferences.getString("favourite", "100");
 
+
+
         favouriteFuelTextView.setText(CURRENT_FAVOURITE);
 
+//        currentFuelTextview.setText(CURRENT_FAVOURITE);
+//        CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
+//        currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
         currentFuelTextview.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                if(s.length()>0){
+                if(s.length()>1){
                     CURRENT_COST=Integer.parseInt(stripNonDigits(s.toString().trim()));
-                    CURRENT_LITRES= CURRENT_COST/CURRENT_RATE;
+                    CURRENT_LITRES= CURRENT_COST / CURRENT_RATE;
                 }
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 currentLitresTextView.setText(String.valueOf(String.format("%.2f", CURRENT_LITRES)));
-                if (s.length() > 0) {
+                if (s.length() > 1) {
                     CURRENT_COST = Integer.parseInt(stripNonDigits(s.toString().trim()));
                     CURRENT_LITRES = CURRENT_COST / CURRENT_RATE;
                     Log.d(TAG, CURRENT_COST + " " + CURRENT_LITRES);
@@ -223,10 +251,10 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
             @Override
             public void afterTextChanged(Editable s) {
-             if(s.length()>0){
+             if(s.length()>1){
                 currentLitresTextView.setText(String.valueOf(String.format("%.2f",CURRENT_LITRES)));
                 CURRENT_COST=Integer.parseInt(stripNonDigits(s.toString().trim()));
-                CURRENT_LITRES= CURRENT_COST/CURRENT_RATE;
+                CURRENT_LITRES= CURRENT_COST / CURRENT_RATE;
                 Log.d(TAG, CURRENT_COST+" "+CURRENT_LITRES);
             }
 
@@ -257,6 +285,65 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             @Override
             public void onClick(View v) {
 
+                SQLiteDatabase database=(new FuelDbHelper(getApplicationContext())).getWritableDatabase();
+
+                ContentValues cv=new ContentValues();
+
+                DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                Date date=new Date();
+
+                cv.put(FuelContract.FuelEntry.COLUMN_TIME_FILLED, dateFormat.format(date).toString());
+                cv.put(FuelContract.FuelEntry.COLUMN_MONEY, CURRENT_COST);
+                cv.put(FuelContract.FuelEntry.COLUMN_FUEL_TYPE, CURRENT_FUEL_TYPE);
+                cv.put(FuelContract.FuelEntry.COLUMN_LITRES, String.valueOf(String.format("%.2f",CURRENT_LITRES)));
+
+
+
+                cv.put(FuelContract.FuelEntry.COLUMN_LOCATION, CURRENT_LOCATION);
+
+
+                arrayForTimelineDate.add(dateFormat.format(date).toString());
+                arrayForTimelineFuelType.add(CURRENT_FUEL_TYPE);
+                arrayForTimelineLocation.add(CURRENT_LOCATION);
+                Log.d(TAG, "ContentValues inserted");
+
+                if(mCurrentLocation!=null) {
+                    cv.put(FuelContract.FuelEntry.COLUMN_LATITUDE, mCurrentLocation.getLatitude());
+                    cv.put(FuelContract.FuelEntry.COLUMN_LONGITUDE, mCurrentLocation.getLongitude());
+                }
+                else
+                {
+
+
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AppTheme);
+                    alertDialog.setMessage("Location Permission is required for this app to work. Please turn on location");
+                    alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                      //Toast.makeText(getApplicationContext(), "You need to switch on Location.", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        }
+                    });
+                    alertDialog.setNegativeButton("Cancel", null);
+                    AlertDialog a = alertDialog.create();
+                    a.show();
+                    Window window = a.getWindow();
+                    window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+
+                    //Toast.makeText(getApplicationContext(), "mCurrentLocation is null", Toast.LENGTH_SHORT).show();
+                }
+                long id= database.insert(FuelContract.FuelEntry.TABLE_NAME, null, cv);
+                getAllData();
+                if(id<=0){
+                    Toast.makeText(getApplicationContext(), "Could not add data.", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Succesfully added data" , Toast.LENGTH_SHORT).show();
+                }
+
+                database.close();
             }
         });
 
@@ -307,7 +394,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             Window window = a.getWindow();
             window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
-            Toast.makeText(getApplicationContext(), "mCurrentLocation is null", Toast.LENGTH_SHORT).show();
+           // Toast.makeText(getApplicationContext(), "mCurrentLocation is null", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -335,6 +422,31 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         {
             preferencesUpdated=false;
         }
+
+
+        SQLiteDatabase database=(new FuelDbHelper(getApplicationContext())).getReadableDatabase();
+
+        Cursor cursor= database.rawQuery("select * from "+ FuelContract.FuelEntry.TABLE_NAME, null );
+
+        String lastItemCost="0";
+        while(!cursor.isAfterLast()) {
+            cursor.moveToLast();
+            lastItemCost = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_MONEY));
+            cursor.moveToNext();
+        }
+        lastUsedFuelTextView.setText("₹"+lastItemCost);
+        currentFuelTextview.setText("₹"+lastItemCost);
+
+        favouriteFuelTextView.setText("₹"+CURRENT_FAVOURITE);
+
+
+        CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
+        currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
+
+        getCurrentRate();
+
+        database.close();
+
     }
 
     @Override
@@ -355,12 +467,14 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (ActivityCompat.checkSelfPermission(this, permissions[0]) == PackageManager.PERMISSION_GRANTED) {
+
+
+        if (permissions.length>0 && ActivityCompat.checkSelfPermission(this, permissions[0]) == PackageManager.PERMISSION_GRANTED) {
 
             switch (requestCode) {
 
                 case REQUEST_LOCATION_PERMISSION:
-                    Toast.makeText(getApplicationContext(), "Permission allowed", Toast.LENGTH_SHORT).show();
+                   // Toast.makeText(getApplicationContext(), "Permission allowed", Toast.LENGTH_SHORT).show();
                     break;
 
             }
@@ -373,7 +487,6 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-        //updateUI();
         getPlace();
     }
 
@@ -389,7 +502,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
             return;
         }
-        PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (com.google.android.gms.location.LocationListener) this);
+        PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         Log.d(TAG, "Location update started ..............: ");
     }
 
@@ -429,7 +542,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
 
-        Toast.makeText(getApplicationContext(), "You are not connected to the internet right now. Please try again.", Toast.LENGTH_SHORT).show();
+       // Toast.makeText(getApplicationContext(), "You are not connected to the internet right now. Please try again.", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -441,11 +554,43 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         }
 
 
+        if(mCurrentLocation==null) {
+
+
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog.setMessage("Location Permission is required for this app to work. Please turn on location");
+            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                }
+            });
+            alertDialog.setNegativeButton("Cancel", null);
+            AlertDialog a = alertDialog.create();
+            a.show();
+            Window window = a.getWindow();
+            window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+
+           // Toast.makeText(getApplicationContext(), "mCurrentLocation is null", Toast.LENGTH_SHORT).show();
+        }
+
         Awareness.SnapshotApi.getPlaces(mGoogleApiClient).setResultCallback(new ResultCallback<PlacesResult>() {
             @Override
             public void onResult(@NonNull PlacesResult placesResult) {
                 if (!placesResult.getStatus().isSuccess()) {
                     Log.e(TAG, "Could not get places");
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AppTheme);
+                    alertDialog.setMessage("You are not connected to the internet right now. Please try again later.");
+                    alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+                    alertDialog.setNegativeButton("Cancel", null);
+                    AlertDialog a = alertDialog.create();
+                    a.show();
+                    Window window = a.getWindow();
+                    window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
                     return;
                 }
                 List<PlaceLikelihood> placeLikelihoodList = placesResult.getPlaceLikelihoods();
@@ -502,6 +647,11 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
             return true;
         }
+
+        else if(id==R.id.action_timeline)
+        {
+            startActivity(new Intent(getApplicationContext(), TimelineActivity.class));
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -520,9 +670,26 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
                             CURRENT_RATE=Double.parseDouble(response.getString("petrol"));
                         else
                             CURRENT_RATE=Double.parseDouble(response.getString("diesel"));
-                        currentRateTextView.setText((String.valueOf(CURRENT_RATE)));
+                        currentRateTextView.setText("₹"+(String.valueOf(CURRENT_RATE)));
+                        CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
+                        currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
+
                     } catch (JSONException e) {
                         e.printStackTrace();
+
+                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AppTheme);
+                        alertDialog.setMessage("You are not connected to the internet right now. Please try again later.");
+                        alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        });
+                        alertDialog.setNegativeButton("Cancel", null);
+                        AlertDialog a = alertDialog.create();
+                        a.show();
+                        Window window = a.getWindow();
+                        window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+
                         Log.d(TAG, e.toString());
                     }
 
@@ -533,6 +700,21 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Log.d(TAG, error.toString());
+
+
+                            AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AppTheme);
+                            alertDialog.setMessage("You are not connected to the internet right now. Please try again later.");
+                            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            });
+                            alertDialog.setNegativeButton("Cancel", null);
+                            AlertDialog a = alertDialog.create();
+                            a.show();
+                            Window window = a.getWindow();
+                            window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+
                         }
                     }
 
@@ -551,8 +733,34 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         CURRENT_FUEL_TYPE=sharedPreferences.getString("FuelType", "thug");
         Log.d(TAG, CURRENT_FUEL_TYPE);
         CURRENT_FAVOURITE=sharedPreferences.getString("favourite", "100");
-        favouriteFuelTextView.setText(CURRENT_FAVOURITE);
+        favouriteFuelTextView.setText("₹"+CURRENT_FAVOURITE);
 
         getCurrentRate();
     }
+
+
+    protected void getAllData()
+    {
+        SQLiteDatabase database=new FuelDbHelper(getApplicationContext()).getReadableDatabase();
+
+        Cursor cursor= database.rawQuery("select * from "+ FuelContract.FuelEntry.TABLE_NAME, null );
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast()) {
+                String fuelType = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_FUEL_TYPE));
+                String lat = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LATITUDE));
+                String lon = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LONGITUDE));
+                String money = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_MONEY));
+                String litres = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LITRES));
+                String date= cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_TIME_FILLED));
+                String location= cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LOCATION));
+                Log.d(TAG, fuelType+" ,"+lat+" ,"+lon+" ,"+money+" ,"+litres+" ,"+date);
+
+                cursor.moveToNext();
+            }
+        }
+
+
+        database.close();
+    }
+
 }
