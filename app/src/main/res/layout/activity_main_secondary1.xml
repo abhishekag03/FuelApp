@@ -417,7 +417,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
-                            android:text="64.2"
+                            android:text="₹100"
                             android:id="@+id/most_used_fuel_cost"
                             android:gravity="center"
                             android:drawableLeft="@drawable/ic_most_times_icon"

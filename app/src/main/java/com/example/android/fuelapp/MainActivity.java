@@ -99,12 +99,15 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     private double CURRENT_COST;
     private long CURRENT_LATITUDE;
     private long CURRENT_LONGITUDE;
+    private double CURRENT_PETROL_RATE;
+    private double CURRENT_DIESEL_RATE;
     private double CURRENT_RATE;
     private String CURRENT_FUEL_TYPE;
     private double CURRENT_LITRES;
     private String CURRENT_FAVOURITE;
 
     private static boolean preferencesUpdated=false;
+    SQLiteDatabase database;
 
 
     private EditText currentFuelTextview;
@@ -215,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         //getCurrentRate();
         getAllData();
 
-
+        database= (new FuelDbHelper(getApplicationContext())).getWritableDatabase();
 
         SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
@@ -224,8 +227,34 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         CURRENT_FAVOURITE=sharedPreferences.getString("favourite", "100");
 
 
+        SharedPreferences sharedPreferences1= PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        if(!sharedPreferences1.contains("petrolRate"))
+        {
+            sharedPreferences1.edit().putFloat("petrolRate", 70).apply();
+        }
+
+        if(!sharedPreferences1.contains("dieselRate"))
+        {
+            sharedPreferences1.edit().putFloat("dieselRate", 60).apply();
+        }
+
+
+
+        CURRENT_PETROL_RATE=sharedPreferences1.getFloat("petrolRate", 70);
+        CURRENT_DIESEL_RATE=sharedPreferences1.getFloat("dieselRate", 60);
+
+
 
         favouriteFuelTextView.setText(CURRENT_FAVOURITE);
+        Cursor mC = database.rawQuery("SELECT money FROM(SELECT COUNT(money) AS c, money FROM fuel GROUP BY money order by c DESC LIMIT 1)", null);
+
+        if(!mC.moveToFirst() || mC.getCount()==0)
+            frequentFuelTextView.setText(String.valueOf("₹100"));
+        else
+            frequentFuelTextView.setText("₹"+String.valueOf( mC.getInt(0)));
+
+
+
 
 //        currentFuelTextview.setText(CURRENT_FAVOURITE);
 //        CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
@@ -285,8 +314,6 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             @Override
             public void onClick(View v) {
 
-                SQLiteDatabase database=(new FuelDbHelper(getApplicationContext())).getWritableDatabase();
-
                 ContentValues cv=new ContentValues();
 
                 DateFormat dateFormat= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -343,7 +370,30 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
                     Toast.makeText(getApplicationContext(), "Succesfully added data" , Toast.LENGTH_SHORT).show();
                 }
 
-                database.close();
+                
+            }
+        });
+
+
+
+        favouriteFuelTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                currentFuelTextview.setText(favouriteFuelTextView.getText().toString());
+            }
+        });
+
+        lastUsedFuelTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                currentFuelTextview.setText(lastUsedFuelTextView.getText().toString());
+            }
+        });
+
+        frequentFuelTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                currentFuelTextview.setText(frequentFuelTextView.getText().toString());
             }
         });
 
@@ -356,13 +406,15 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     {
         android.support.v4.app.NotificationCompat.Builder mBuilder= new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_notification_icon)
-                .setContentTitle("First Notification")
-                .setContentText("hello world");
+                .setContentTitle("Track your fuel expenses")
+                .setContentText("Filling up Fuel? Add it to your timeline.")
+                .setAutoCancel(true);
 
         Intent resultIntent= new Intent(this, MainActivity.class);
 
         PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        mBuilder.build().flags|=Notification.FLAG_AUTO_CANCEL;
         mBuilder.setContentIntent(resultPendingIntent);
 
         int mNotificationId= 001;
@@ -424,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         }
 
 
-        SQLiteDatabase database=(new FuelDbHelper(getApplicationContext())).getReadableDatabase();
+        database=(new FuelDbHelper(getApplicationContext())).getReadableDatabase();
 
         Cursor cursor= database.rawQuery("select * from "+ FuelContract.FuelEntry.TABLE_NAME, null );
 
@@ -435,17 +487,18 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             cursor.moveToNext();
         }
         lastUsedFuelTextView.setText("₹"+removeAfterDecimalPoint(lastItemCost));
-        currentFuelTextview.setText("₹"+removeAfterDecimalPoint(lastItemCost));
+
 
         favouriteFuelTextView.setText("₹"+CURRENT_FAVOURITE);
 
+        currentFuelTextview.setText("₹"+CURRENT_FAVOURITE);
 
         CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
         currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
 
         getCurrentRate();
 
-        database.close();
+        
 
     }
 
@@ -470,12 +523,13 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         super.onDestroy();
         SharedPreferences sharedPreferences= android.preference.PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+        database.close();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mGoogleApiClient.disconnect();
+        //mGoogleApiClient.disconnect();
     }
 
 
@@ -537,6 +591,18 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         if (mGoogleApiClient.isConnected()) {
             startLocationUpdates();
         }
+        database=new FuelDbHelper(getApplicationContext()).getReadableDatabase();
+
+
+
+        Cursor mC = database.rawQuery("SELECT money FROM(SELECT COUNT(money) AS c, money FROM fuel GROUP BY money order by c DESC LIMIT 1)", null);
+
+        if(!mC.moveToFirst() || mC.getCount()==0)
+            frequentFuelTextView.setText(String.valueOf("₹100"));
+        else
+            frequentFuelTextView.setText("₹"+String.valueOf( mC.getInt(0)));
+
+
     }
 
 
@@ -614,15 +680,17 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
                     CURRENT_LOCATION=placeLikelihoodList.get(0).getPlace().getName().toString();
 
+
+                    if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41)){
+                        Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
+                        sendNotification();
+                    }
+
                     for (int i = 0; i < placeLikelihoodList.size(); i++) {
                         PlaceLikelihood p = placeLikelihoodList.get(i);
                         Log.d(TAG, p.getPlace().getName().toString() +",place type: "+p.getPlace().getPlaceTypes().contains(41));
 
 
-
-                        if(p.getPlace().getPlaceTypes().contains(41)){
-                            Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
-                        }
                     }
                 } else {
                     Log.d(TAG, "Place is null");
@@ -683,9 +751,21 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
                     try {
 
                         if(CURRENT_FUEL_TYPE.equals("Petrol"))
-                            CURRENT_RATE=Double.parseDouble(response.getString("petrol"));
+                            if(response.getString("petrol")==null || response.getString("petrol").equals("null"))
+                                CURRENT_RATE=CURRENT_PETROL_RATE;
+                            else {
+                                CURRENT_RATE = Double.parseDouble(response.getString("petrol"));
+                                android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("petrolRate", (float) CURRENT_RATE).apply();
+                                android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("dieselRate", (float) Double.parseDouble(response.getString("diesel"))).apply();
+                            }
                         else
-                            CURRENT_RATE=Double.parseDouble(response.getString("diesel"));
+                            if(response.getString("diesel")==null || response.getString("diesel").equals("null"))
+                                CURRENT_RATE=CURRENT_DIESEL_RATE;
+                            else {
+                                CURRENT_RATE = Double.parseDouble(response.getString("diesel"));
+                                android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("dieselRate", (float) CURRENT_RATE).apply();
+                                android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("petrolRate", (float) Double.parseDouble(response.getString("petrol"))).apply();
+                            }
                         currentRateTextView.setText("₹"+(String.valueOf(CURRENT_RATE)));
                         CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
                         currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
@@ -746,7 +826,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
 
         preferencesUpdated=true;
-        CURRENT_FUEL_TYPE=sharedPreferences.getString("FuelType", "thug");
+        CURRENT_FUEL_TYPE=sharedPreferences.getString("FuelType", "Petrol");
         Log.d(TAG, CURRENT_FUEL_TYPE);
         CURRENT_FAVOURITE=sharedPreferences.getString("favourite", "100");
         favouriteFuelTextView.setText("₹"+CURRENT_FAVOURITE);
@@ -757,7 +837,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
     protected void getAllData()
     {
-        SQLiteDatabase database=new FuelDbHelper(getApplicationContext()).getReadableDatabase();
+        database=new FuelDbHelper(getApplicationContext()).getReadableDatabase();
 
         Cursor cursor= database.rawQuery("select * from "+ FuelContract.FuelEntry.TABLE_NAME, null );
         if (cursor.moveToFirst()) {
@@ -776,7 +856,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         }
 
 
-        database.close();
+        
     }
 
 }

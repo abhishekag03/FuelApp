@@ -117,6 +117,9 @@ public class FuelAdapter extends RecyclerView.Adapter<FuelAdapter.NumberViewHold
             int clickedPosition=getAdapterPosition();
             mOnClickListener.onListItemClick(clickedPosition);
         }
+
+
+
     }
 
 }

@@ -38,35 +38,49 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_timeline);
-
-        getSupportActionBar().setTitle("Timeline");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back_button);
 
 
         getDataForTimeline();
 
-        Collections.reverse(arrayForTimelineDate);
-        Collections.reverse(arrayForTimelineFuelType);
-        Collections.reverse(arrayForTimelineLocation);
-        Collections.reverse(arrayForTimelineCost);
-        Collections.reverse(arrayForTimelineLitres);
+        if (arrayForTimelineDate.size() > 0) {
 
-        mOrientation=(Orientation) getIntent().getSerializableExtra(MainActivity.EXTRA_ORIENTATION);
-        mWithLinePadding= getIntent().getBooleanExtra(MainActivity.EXTRA_WITH_LINE_PADDING, false);
 
-        mRecyclerView=(RecyclerView) findViewById(R.id.fuel_stations_list);
-        LinearLayoutManager layoutManager= new LinearLayoutManager(getApplicationContext());
-        mRecyclerView.setLayoutManager(layoutManager);
-        mRecyclerView.setHasFixedSize(true);
+            setContentView(R.layout.activity_timeline);
 
-        initView();
 
+            getSupportActionBar().setTitle("Timeline");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back_button);
+            Collections.reverse(arrayForTimelineDate);
+            Collections.reverse(arrayForTimelineFuelType);
+            Collections.reverse(arrayForTimelineLocation);
+            Collections.reverse(arrayForTimelineCost);
+            Collections.reverse(arrayForTimelineLitres);
+
+            mOrientation = (Orientation) getIntent().getSerializableExtra(MainActivity.EXTRA_ORIENTATION);
+            mWithLinePadding = getIntent().getBooleanExtra(MainActivity.EXTRA_WITH_LINE_PADDING, false);
+
+            mRecyclerView = (RecyclerView) findViewById(R.id.fuel_stations_list);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+            mRecyclerView.setLayoutManager(layoutManager);
+            mRecyclerView.setHasFixedSize(true);
+
+            initView();
+
+        }
+
+        else
+        {
+            setContentView(R.layout.empty_timeline);
+
+            getSupportActionBar().setTitle("Timeline");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back_button);
+        }
     }
 
     private void initView()
