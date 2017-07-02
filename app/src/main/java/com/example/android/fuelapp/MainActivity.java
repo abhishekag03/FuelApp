@@ -2,10 +2,12 @@ package com.example.android.fuelapp;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -47,6 +49,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.android.fuelapp.data.FuelContract;
 import com.example.android.fuelapp.data.FuelDbHelper;
+import com.example.android.fuelapp.data.NotificationService;
 import com.google.android.gms.awareness.Awareness;
 import com.google.android.gms.awareness.snapshot.PlacesResult;
 import com.google.android.gms.common.ConnectionResult;
@@ -95,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     private Location mCurrentLocation;
     private String mLastUpdateTime;
 
-    private String CURRENT_LOCATION;
+    public static String CURRENT_LOCATION;
     private double CURRENT_COST;
     private long CURRENT_LATITUDE;
     private long CURRENT_LONGITUDE;
@@ -254,6 +257,8 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
             frequentFuelTextView.setText("₹"+String.valueOf( mC.getInt(0)));
 
 
+
+        startService(new Intent(this, NotificationService.class));
 
 
 //        currentFuelTextview.setText(CURRENT_FAVOURITE);
@@ -450,6 +455,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         }
     }
 
+
     /*  Returns a dialog to address the provided errorCode. The returned dialog displays a localized
      message about the error and upon user confirmation (by tapping on dialog) will direct them to
      the Play Store if Google Play services is out of date or missing, or to system settings if
@@ -606,6 +612,17 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     }
 
 
+    private boolean isMyServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (NotificationService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
@@ -683,7 +700,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
                     if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41)){
                         Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
-                        sendNotification();
+                       // sendNotification();
                     }
 
                     for (int i = 0; i < placeLikelihoodList.size(); i++) {
