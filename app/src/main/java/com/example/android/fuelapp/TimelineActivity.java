@@ -1,7 +1,9 @@
 package com.example.android.fuelapp;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -101,7 +103,52 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
 
     @Override
     public void onListItemClick(int clickedItemIndex) {
-        Toast.makeText(getApplicationContext(), arrayForTimelineLocation.get(clickedItemIndex)+" clicked", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(), arrayForTimelineLocation.get(clickedItemIndex)+" clicked", Toast.LENGTH_SHORT).show();
+        String locationToQuery= arrayForTimelineLocation.get(clickedItemIndex);
+        String dateToQuery= arrayForTimelineDate.get(clickedItemIndex);
+        String fuelTypeToQuery= arrayForTimelineFuelType.get(clickedItemIndex);
+        String costToQuery= arrayForTimelineCost.get(clickedItemIndex);
+        String litresToQuery=arrayForTimelineLitres.get(clickedItemIndex);
+
+        SQLiteDatabase db= (new FuelDbHelper(getApplicationContext())).getReadableDatabase();
+
+        Cursor cursor=db.rawQuery("select * from "+ FuelContract.FuelEntry.TABLE_NAME+" where "+
+
+                FuelContract.FuelEntry.COLUMN_LOCATION+"=? and "+
+                FuelContract.FuelEntry.COLUMN_FUEL_TYPE+"=? and "+
+                FuelContract.FuelEntry.COLUMN_MONEY+"=? and "+
+                FuelContract.FuelEntry.COLUMN_LITRES+"=? and "+
+                FuelContract.FuelEntry.COLUMN_TIME_FILLED+"=?", new String[]{locationToQuery, fuelTypeToQuery, costToQuery, litresToQuery, dateToQuery});
+
+
+
+        String lat="", lon="";
+
+        if(!(!cursor.moveToFirst() || cursor.getCount()==0))
+        {
+            Log.d("database", "lat and lon updated");
+                lat=cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LATITUDE));
+                lon=cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LONGITUDE));
+        }
+
+
+        Log.d("database","lat: "+lat+" , lon: "+lon);
+        Intent intent= new Intent(Intent.ACTION_VIEW);
+        if(lat!="" && lon!="") {
+
+
+            Uri uri = Uri.parse("geo:0,0?q=" + lat + "," + lon+"("+arrayForTimelineLocation.get(clickedItemIndex)+")");
+            intent.setData(uri);
+            if(intent.resolveActivity(getPackageManager())!=null)
+                startActivity(intent);
+        }
+        else{
+            Log.d("database", "error while opening maps.");
+            Toast.makeText(getApplicationContext(), "error while opening maps.", Toast.LENGTH_SHORT).show();
+        }
+
+        db.close();
+
     }
 
 

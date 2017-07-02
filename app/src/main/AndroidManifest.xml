@@ -29,7 +29,16 @@
             </intent-filter>
         </activity>
         <activity android:name=".SettingsActivity"/>
-        <activity android:name=".TimelineActivity"></activity>
+        <activity android:name=".TimelineActivity">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <data android:scheme="geo" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+
+        </activity>
 
         <service android:name=".data.NotificationService"
             android:enabled="true"/>
