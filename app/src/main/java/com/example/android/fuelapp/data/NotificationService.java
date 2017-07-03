@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -29,6 +31,8 @@ import android.widget.Toast;
 
 import com.example.android.fuelapp.MainActivity;
 import com.example.android.fuelapp.R;
+import com.example.android.fuelapp.SettingsActivity;
+import com.example.android.fuelapp.TimelineActivity;
 import com.google.android.gms.awareness.Awareness;
 import com.google.android.gms.awareness.snapshot.PlacesResult;
 import com.google.android.gms.common.ConnectionResult;
@@ -59,6 +63,9 @@ public class NotificationService extends Service implements com.google.android.g
     private GoogleApiClient mGoogleApiClient;
     private Location mCurrentLocation;
     private String mLastUpdateTime;
+
+    public static boolean notificationIsSent=false;
+
 
     private static final long INTERVAL = 10000;
     private static final long FASTEST_INTERVAL = 5000;
@@ -134,8 +141,13 @@ public class NotificationService extends Service implements com.google.android.g
 
         mBuilder.build().flags |= Notification.FLAG_AUTO_CANCEL;
         mBuilder.setContentIntent(resultPendingIntent);
+        Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        mBuilder.setSound(soundUri);
+        mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
 
         int mNotificationId = 001;
+
+        notificationIsSent=true;
 
         NotificationManager mNotifymgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mNotifymgr.notify(mNotificationId, mBuilder.build());
@@ -221,6 +233,7 @@ public class NotificationService extends Service implements com.google.android.g
     @Override
     public void onLocationChanged(Location location) {
 
+       // notificationIsSent=false;
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         getPlace();
@@ -279,8 +292,9 @@ public class NotificationService extends Service implements com.google.android.g
                     MainActivity.CURRENT_LOCATION=placeLikelihoodList.get(0).getPlace().getName().toString();
 
 
-                    if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41)){
+                    if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41) && !notificationIsSent && !MainActivity.isRunning && !TimelineActivity.isRunning && !SettingsActivity.isRunning){
                      //   Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
+                        notificationIsSent=true;
                         sendNotification();
                     }
 

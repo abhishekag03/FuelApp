@@ -86,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     public String TAG = "database";
 
 
+    public static boolean isRunning=false;
+
     public final static String EXTRA_ORIENTATION = "EXTRA_ORIENTATION";
     public final static String EXTRA_WITH_LINE_PADDING = "EXTRA_WITH_LINE_PADDING";
 
@@ -179,6 +181,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         //getSupportActionBar().hide();
 
 
+        NotificationService.notificationIsSent=false;
 
         priceHolder=(TextView) findViewById(R.id.price_text_view);
         litresHolder=(TextView) findViewById(R.id.litres_text_view);
@@ -477,6 +480,8 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onStart() {
         super.onStart();
+        isRunning=true;
+        NotificationService.notificationIsSent=false;
         mGoogleApiClient.connect();
         if(preferencesUpdated)
         {
@@ -551,6 +556,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     protected void onStop() {
         super.onStop();
+        isRunning=false;
         //mGoogleApiClient.disconnect();
     }
 

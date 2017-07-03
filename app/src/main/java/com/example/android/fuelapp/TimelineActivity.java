@@ -30,6 +30,8 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
     private Orientation mOrientation;
     private boolean mWithLinePadding;
 
+    public static boolean isRunning=false;
+
 
     public static List<String> arrayForTimelineFuelType=new ArrayList<>();
     public static List<String> arrayForTimelineDate=new ArrayList<>();
@@ -83,6 +85,18 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back_button);
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        isRunning=true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        isRunning=false;
     }
 
     private void initView()

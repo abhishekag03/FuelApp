@@ -8,6 +8,8 @@ import android.view.MenuItem;
 public class SettingsActivity extends AppCompatActivity
 {
 
+    public static boolean isRunning=false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -28,5 +30,18 @@ public class SettingsActivity extends AppCompatActivity
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        isRunning=true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        isRunning=false;
     }
 }
