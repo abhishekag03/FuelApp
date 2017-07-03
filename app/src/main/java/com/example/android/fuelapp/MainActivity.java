@@ -713,11 +713,11 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
                     CURRENT_LOCATION=placeLikelihoodList.get(0).getPlace().getName().toString();
 
-
-                    if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41)){
-                        Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
-                       // sendNotification();
-                    }
+//
+//                    if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41)){
+//                       // Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
+//                       // sendNotification();
+//                    }
 
                     for (int i = 0; i < placeLikelihoodList.size(); i++) {
                         PlaceLikelihood p = placeLikelihoodList.get(i);
