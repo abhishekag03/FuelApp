@@ -280,7 +280,7 @@ public class NotificationService extends Service implements com.google.android.g
 
 
                     if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41)){
-                        Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
+                     //   Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
                         sendNotification();
                     }
 
