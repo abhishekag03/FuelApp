@@ -317,6 +317,7 @@ public class NotificationService extends Service implements com.google.android.g
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d("databaseService", "came to on destroy of notif service");
         Intent restartService= new Intent("RestartService");
         sendBroadcast(restartService);
     }

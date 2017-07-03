@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
@@ -77,6 +78,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final int REQUEST_LOCATION_PERMISSION = 122;
+    ;
 
 
     public static List<String> arrayForTimelineFuelType=new ArrayList<>();
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
 
     public static boolean isRunning=false;
+    private static boolean CURRENT_LOCATION_IS_FUEL_STATION = false;
 
     public final static String EXTRA_ORIENTATION = "EXTRA_ORIENTATION";
     public final static String EXTRA_WITH_LINE_PADDING = "EXTRA_WITH_LINE_PADDING";
@@ -316,6 +319,8 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
+
 
 
         fillButton.setOnClickListener(new View.OnClickListener() {
@@ -583,6 +588,17 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     @Override
     public void onLocationChanged(Location location) {
 
+        if(CURRENT_LOCATION_IS_FUEL_STATION){
+            fillButton.setEnabled(true);
+            //fillButton.setBackgroundTintColor(getResources().getColor(R.color.themeYellow));
+            fillButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeYellow)));
+        }
+        else{
+            fillButton.setEnabled(false);
+            //fillButton.setBackgroundColor(getResources().getColor(R.color.mainBlock));
+            fillButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.mainBlock)));
+        }
+
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         getPlace();
@@ -719,11 +735,17 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
                     CURRENT_LOCATION=placeLikelihoodList.get(0).getPlace().getName().toString();
 
-//
-//                    if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41)){
+
+
+                    if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41)){
 //                       // Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
 //                       // sendNotification();
-//                    }
+                        CURRENT_LOCATION_IS_FUEL_STATION=true;
+                    }
+                    else
+                    {
+                        CURRENT_LOCATION_IS_FUEL_STATION=false;
+                    }
 
                     for (int i = 0; i < placeLikelihoodList.size(); i++) {
                         PlaceLikelihood p = placeLikelihoodList.get(i);
