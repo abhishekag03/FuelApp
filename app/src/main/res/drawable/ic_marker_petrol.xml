@@ -3,18 +3,18 @@
 
 
     <item>
-    <shape android:shape="oval">
+        <shape android:shape="oval">
 
-    <solid android:color="@android:color/white"/>
+            <solid android:color="@android:color/white"/>
 
-</shape>
+        </shape>
 
-</item>
-    <item android:drawable="@drawable/diesel_drop"
+    </item>
+    <item android:drawable="@drawable/petrol_drop"
         android:height="@dimen/marker_drop_size"
         android:width="@dimen/marker_drop_size"
         android:top="@dimen/marker_padding"
         android:bottom="@dimen/marker_padding"
         android:left="@dimen/marker_padding"
         android:right="@dimen/marker_padding"/>
-    </layer-list>
+</layer-list>

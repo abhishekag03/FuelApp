@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         startService(new Intent(this, NotificationService.class));
 
 
-//        currentFuelTextview.setText(CURRENT_FAVOURITE);
+//        currentFuelTextview.setText(removeRupeeSymbol(CURRENT_FAVOURITE);
 //        CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
 //        currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
         currentFuelTextview.addTextChangedListener(new TextWatcher() {
@@ -384,21 +384,21 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         favouriteFuelTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentFuelTextview.setText(favouriteFuelTextView.getText().toString());
+                currentFuelTextview.setText(removeRupeeSymbol(favouriteFuelTextView.getText().toString()));
             }
         });
 
         lastUsedFuelTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentFuelTextview.setText(lastUsedFuelTextView.getText().toString());
+                currentFuelTextview.setText(removeRupeeSymbol(lastUsedFuelTextView.getText().toString()));
             }
         });
 
         frequentFuelTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentFuelTextview.setText(frequentFuelTextView.getText().toString());
+                currentFuelTextview.setText(removeRupeeSymbol(frequentFuelTextView.getText().toString()));
             }
         });
 
@@ -424,6 +424,8 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
         int mNotificationId= 001;
 
+        
+        
         NotificationManager mNotifymgr= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mNotifymgr.notify(mNotificationId, mBuilder.build());
 
@@ -433,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         if (mCurrentLocation != null) {
             String lat = String.valueOf(mCurrentLocation.getLatitude());
             String lng = String.valueOf(mCurrentLocation.getLongitude());
-            currentFuelTextview.setText(CURRENT_LOCATION+" "+ mLastUpdateTime);
+            currentFuelTextview.setText(removeRupeeSymbol(CURRENT_LOCATION+" "+ mLastUpdateTime));
         } else {
 
 
@@ -497,7 +499,7 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
         favouriteFuelTextView.setText("₹"+CURRENT_FAVOURITE);
 
-        currentFuelTextview.setText("₹"+CURRENT_FAVOURITE);
+        currentFuelTextview.setText(removeRupeeSymbol("₹"+CURRENT_FAVOURITE));
 
         CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
         currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
@@ -506,6 +508,20 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
 
         
 
+    }
+    
+    
+    String removeRupeeSymbol(String string)
+    {
+        String s="";
+        
+        for(int i=0;i<string.length();i++){
+            if(!(string.charAt(i)=='₹')){
+                s+=string.charAt(i);
+            }
+        }
+        
+        return s;
     }
 
 
