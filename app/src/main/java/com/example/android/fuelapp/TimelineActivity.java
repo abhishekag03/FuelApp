@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.widget.Toast;
 
 import com.example.android.fuelapp.data.FuelAdapter;
@@ -21,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TimelineActivity extends AppCompatActivity implements FuelAdapter.ListItemClickListener
+public class TimelineActivity extends AppCompatActivity implements GestureDetector.OnGestureListener,FuelAdapter.ListItemClickListener
 {
 
 
@@ -29,6 +31,9 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
     private FuelAdapter mFuelAdapter;
     private Orientation mOrientation;
     private boolean mWithLinePadding;
+
+    private float x1,x2;
+    private float y1,y2;
 
     public static boolean isRunning=false;
 
@@ -198,6 +203,82 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
 
 
         database.close();
+    }
+
+
+    public boolean onTouchEvent(MotionEvent touchEvent)
+    {
+        switch (touchEvent.getAction())
+        {
+            case  MotionEvent.ACTION_DOWN:
+            {
+                x1=touchEvent.getX();
+                y1=touchEvent.getY();
+                break;
+            }
+
+            case MotionEvent.ACTION_UP:
+            {
+                x2=touchEvent.getX();
+                y2=touchEvent.getY();
+
+                if(x1<x2)
+                {
+                    Toast.makeText(getApplicationContext(), "Left to right swipe performed", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+
+                if(x1>x2)
+                {
+                    //Toast.makeText(getApplicationContext(), "Right to left swipe performed", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+        }
+
+        return false;
+    }
+
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        onTouchEvent(e);
+        Toast.makeText(getApplicationContext(), "onDown", Toast.LENGTH_SHORT).show();
+        return true;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+        Toast.makeText(getApplicationContext(), "onShowPress", Toast.LENGTH_SHORT).show();
+        onTouchEvent(e);
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        Toast.makeText(getApplicationContext(), "onSingleTapUp", Toast.LENGTH_SHORT).show();
+        onTouchEvent(e);
+        return true;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        Toast.makeText(getApplicationContext(), "onScroll", Toast.LENGTH_SHORT).show();
+        onTouchEvent(e1);
+        return true;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+        Toast.makeText(getApplicationContext(), "onLongPress", Toast.LENGTH_SHORT).show();
+        onTouchEvent(e);
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+
+        Toast.makeText(getApplicationContext(), "onFling", Toast.LENGTH_SHORT).show();
+        onTouchEvent(e1);
+        return false;
     }
 
 }

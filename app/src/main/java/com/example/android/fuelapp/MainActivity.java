@@ -33,8 +33,10 @@ import android.support.v7.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -75,7 +77,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity implements GestureDetector.OnGestureListener,com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final int REQUEST_LOCATION_PERMISSION = 122;
     ;
@@ -102,6 +104,12 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
     private GoogleApiClient mGoogleApiClient;
     private Location mCurrentLocation;
     private String mLastUpdateTime;
+
+
+    private float x1, x2;
+    private float y1,y2;
+
+
 
     public static String CURRENT_LOCATION;
     private double CURRENT_COST;
@@ -920,4 +928,75 @@ public class MainActivity extends AppCompatActivity implements com.google.androi
         
     }
 
+
+
+
+    public boolean onTouchEvent(MotionEvent touchEvent)
+    {
+        switch (touchEvent.getAction())
+        {
+            case  MotionEvent.ACTION_DOWN:
+            {
+                x1=touchEvent.getX();
+                y1=touchEvent.getY();
+                break;
+            }
+
+            case MotionEvent.ACTION_UP:
+            {
+                x2=touchEvent.getX();
+                y2=touchEvent.getY();
+
+                if(x1<x2)
+                {
+                    //Toast.makeText(getApplicationContext(), "Left to right swipe performed", Toast.LENGTH_SHORT).show();
+                }
+
+                if(x1>x2)
+                {
+                    //Toast.makeText(getApplicationContext(), "Right to left swipe performed", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(getApplicationContext(), TimelineActivity.class));
+                }
+                break;
+            }
+        }
+
+        return false;
+    }
+
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        onTouchEvent(e);
+        return true;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+        onTouchEvent(e);
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        onTouchEvent(e);
+        return true;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        onTouchEvent(e1);
+        return true;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+        onTouchEvent(e);
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+
+        onTouchEvent(e1);
+        return false;
+    }
 }
