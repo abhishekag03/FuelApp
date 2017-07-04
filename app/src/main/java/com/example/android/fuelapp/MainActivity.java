@@ -1061,6 +1061,18 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 if (CURRENT_CITY == "") {
                     if(result.equals("Calcutta"))
                             CURRENT_CITY="kolkata";
+                    else if(result.equals("Gurugram"))
+                            CURRENT_CITY="gurgaon";
+                    else if(result.equals("Thiruvananthapuram"))
+                            CURRENT_CITY="trivandrum";
+                    else if(result.equals("Puducherry"))
+                            CURRENT_CITY="pondichery";
+                    else if(result.equals("Jalandhar"))
+                            CURRENT_CITY="jullunder";
+                    else if(result.equals("Aizawl"))
+                            CURRENT_CITY="aizwal";
+                    else if(result.equals("Bhubaneswar"))
+                            CURRENT_CITY="bhubhaneswar";
                     else
                             CURRENT_CITY = result;
 

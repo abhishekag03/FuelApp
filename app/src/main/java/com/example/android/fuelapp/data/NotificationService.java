@@ -191,7 +191,15 @@ public class NotificationService extends Service implements com.google.android.g
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
-        startLocationUpdates();
+        try {
+
+            startLocationUpdates();
+        }
+        catch (IllegalStateException e){
+            e.printStackTrace();
+            Log.d("network", e.toString());
+        }
+
     }
 
 
