@@ -31,6 +31,7 @@ import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -191,6 +192,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         setContentView(R.layout.activity_main_secondary1);
         //getSupportActionBar().hide();
 
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setCustomView(R.layout.action_bar_main);
 
         NotificationService.notificationIsSent=false;
 
@@ -598,11 +601,36 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         if(CURRENT_LOCATION_IS_FUEL_STATION){
             fillButton.setEnabled(true);
+            if((TextView) findViewById(R.id.app_bar_main_view)!=null){
+                TextView actionBar= (TextView) findViewById(R.id.app_bar_main_view);
+                actionBar.setText(CURRENT_LOCATION);
+                actionBar.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+//                actionBar.setFocusable(true);
+//                actionBar.setFocusableInTouchMode(true);
+//                actionBar.requestFocus();
+                actionBar.setSingleLine(true);
+                actionBar.setSelected(true);
+                actionBar.setMarqueeRepeatLimit(-1);
+            }
             //fillButton.setBackgroundTintColor(getResources().getColor(R.color.themeYellow));
             fillButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeYellow)));
         }
         else{
             fillButton.setEnabled(false);
+            if((TextView) findViewById(R.id.app_bar_main_view)!=null){
+
+
+                TextView actionBar= (TextView) findViewById(R.id.app_bar_main_view);
+                actionBar.setText("FuelApp");
+                actionBar.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+                //actionBar.setFocusable(true);
+                //actionBar.setFocusableInTouchMode(true);
+                //actionBar.requestFocus();
+                actionBar.setSingleLine(true);
+                actionBar.setSelected(true);
+                actionBar.setMarqueeRepeatLimit(-1);
+
+            }
             //fillButton.setBackgroundColor(getResources().getColor(R.color.mainBlock));
             fillButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.mainBlock)));
         }

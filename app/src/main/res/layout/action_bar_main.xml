@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical">
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|center_vertical"
+        android:textSize="20sp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:gravity="start"
+        android:text="FuelApp"
+        android:textColor="@android:color/white"
+        android:id="@+id/app_bar_main_view"
+        />
+
+
+</LinearLayout>
+
