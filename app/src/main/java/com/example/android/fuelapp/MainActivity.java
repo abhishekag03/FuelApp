@@ -32,6 +32,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 import android.support.v7.preference.PreferenceManager;
+import android.support.v7.widget.SwitchCompat;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -43,6 +44,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -120,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private float y1,y2;
 
     private AlertDialog a;
+    private SwitchCompat fuelTypeSwitch;
 
 
     public static String CURRENT_LOCATION;
@@ -215,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         favouriteHolder=(TextView) findViewById(R.id.favourite_text_view);
         frequentHolder=(TextView) findViewById(R.id.frequent_text_view);
         lastUsedHolder=(TextView) findViewById(R.id.last_used_text_view);
+        fuelTypeSwitch= (SwitchCompat) findViewById(R.id.switch_fuel_type);
 
         Typeface oratorSTD=Typeface.createFromAsset(getAssets(), "fonts/OratorStd.otf");
         Typeface segment7=Typeface.createFromAsset(getAssets(), "fonts/Segment7Standard.otf");
@@ -252,12 +256,39 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         database= (new FuelDbHelper(getApplicationContext())).getWritableDatabase();
 
-        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        final SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+        if(!sharedPreferences.contains("FuelType"))
+            sharedPreferences.edit().putString("FuelType", "Petrol").apply();
 
         CURRENT_FUEL_TYPE=sharedPreferences.getString("FuelType", "Petrol");
         CURRENT_FAVOURITE=sharedPreferences.getString("favourite", "100");
 
+
+
+
+
+        fuelTypeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+
+
+
+                    sharedPreferences.edit().putString("FuelType", "Diesel").apply();
+                    CURRENT_FUEL_TYPE="Diesel";
+                    getCurrentRate();
+                    //diesel
+
+                }
+                else{
+                    sharedPreferences.edit().putString("FuelType", "Petrol").apply();;
+                    CURRENT_FUEL_TYPE="Petrol";
+                    getCurrentRate();
+                }
+            }
+        });
 
         SharedPreferences sharedPreferences1= PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         if(!sharedPreferences1.contains("petrolRate"))
@@ -511,6 +542,35 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     protected void onStart() {
         super.onStart();
         isRunning=true;
+
+        if(CURRENT_FUEL_TYPE.equals("Petrol")){
+            fuelTypeSwitch.setChecked(false);
+        }
+        else{
+            fuelTypeSwitch.setChecked(true);
+        }
+
+        fuelTypeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+
+
+
+                    android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("FuelType", "Diesel").apply();
+                    CURRENT_FUEL_TYPE="Diesel";
+                    getCurrentRate();
+                    //diesel
+
+                }
+                else{
+                    android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("FuelType", "Petrol").apply();;
+                    CURRENT_FUEL_TYPE="Petrol";
+                    getCurrentRate();
+                }
+            }
+        });
+
         NotificationService.notificationIsSent=false;
         mGoogleApiClient.connect();
         if(preferencesUpdated)

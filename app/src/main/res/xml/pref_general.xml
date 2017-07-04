@@ -11,11 +11,6 @@
         android:singleLine="true"
         android:title="Favourite" />
 
-    <ListPreference
-        android:defaultValue="Petrol"
-        android:entries="@array/pref_units_options"
-        android:entryValues="@array/pref_units_values"
-        android:key="FuelType"
-        android:title="Fuel Type" />
+
 
 </PreferenceScreen>
