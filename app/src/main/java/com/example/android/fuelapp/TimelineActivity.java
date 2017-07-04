@@ -46,6 +46,7 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
 
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
