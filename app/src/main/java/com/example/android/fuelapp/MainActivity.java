@@ -47,10 +47,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Network;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.android.fuelapp.data.FuelContract;
@@ -75,6 +79,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -114,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private float x1, x2;
     private float y1,y2;
 
+    private AlertDialog a;
 
 
     public static String CURRENT_LOCATION;
@@ -166,8 +172,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     }
                 });
                 alertDialog.setNegativeButton("Cancel", null);
-                AlertDialog a = alertDialog.create();
-                a.show();
+                a = alertDialog.create();
+                if(!a.isShowing())
+                    a.show();
                 Window window = a.getWindow();
                 window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
@@ -382,8 +389,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                         }
                     });
                     alertDialog.setNegativeButton("Cancel", null);
-                    AlertDialog a = alertDialog.create();
-                    a.show();
+                    a = alertDialog.create();
+                    if(!a.isShowing())
+                        a.show();
                     Window window = a.getWindow();
                     window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
@@ -472,8 +480,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 }
             });
             alertDialog.setNegativeButton("Cancel", null);
-            AlertDialog a = alertDialog.create();
-            a.show();
+            a = alertDialog.create();
+            if(!a.isShowing())
+                a.show();
             Window window = a.getWindow();
             window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
@@ -717,9 +726,11 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             public void onClick(DialogInterface dialog, int which) {
             }
         });
+        Log.d("network", "onConnectionFailed");
         alertDialog.setNegativeButton("Cancel", null);
-        AlertDialog a = alertDialog.create();
-        a.show();
+        a = alertDialog.create();
+        if(!a.isShowing())
+            a.show();
         Window window = a.getWindow();
         window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
@@ -748,8 +759,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 }
             });
             alertDialog.setNegativeButton("Cancel", null);
-            AlertDialog a = alertDialog.create();
-            a.show();
+            a = alertDialog.create();
+            if(!a.isShowing())
+                a.show();
             Window window = a.getWindow();
             window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
@@ -769,8 +781,10 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                         }
                     });
                     alertDialog.setNegativeButton("Cancel", null);
-                    AlertDialog a = alertDialog.create();
-                    a.show();
+                    Log.d("network", "getPlace");
+                    a = alertDialog.create();
+                    if(!a.isShowing())
+                        a.show();
                     Window window = a.getWindow();
                     window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
                     return;
@@ -927,6 +941,34 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                             Log.d(TAG, error.toString());
 
 
+                            NetworkResponse response= error.networkResponse;
+                            if(error instanceof ServerError && response!=null){
+                                try{
+                                    String res=new String(response.data, HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+                                    JSONObject obj= new JSONObject(res);
+                                    if(obj.has("msg"))
+                                    {
+                                        if(CURRENT_FUEL_TYPE.equals("Petrol"))
+                                        {
+                                            CURRENT_RATE=CURRENT_PETROL_RATE;
+                                        }
+                                        else
+                                        {
+                                            CURRENT_RATE=CURRENT_DIESEL_RATE;
+                                        }
+                                    }
+                                    Log.d("network", res);
+                                }
+                                catch (UnsupportedEncodingException e1){
+                                    e1.printStackTrace();
+                                    Log.d("network", "unsupportedencoding");
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                    Log.d("network", "jsonexception");
+                                }
+                            }
+
+                            else{
                             AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AppTheme);
                             alertDialog.setMessage("You are not connected to the internet right now. Please try again later.");
                             alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -935,11 +977,15 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                                 }
                             });
                             alertDialog.setNegativeButton("Cancel", null);
-                            AlertDialog a = alertDialog.create();
-                            a.show();
+                            a = alertDialog.create();
+                            Log.d("network", "volley error");
+                            Log.d("network", error.toString());
+                            if(!a.isShowing())
+                                a.show();
                             Window window = a.getWindow();
                             window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
+                            }
                         }
                     }
 
@@ -1013,7 +1059,11 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 String result = address.getLocality();
                 Log.d("yolo", "current city: " + result);
                 if (CURRENT_CITY == "") {
-                    CURRENT_CITY = result;
+                    if(result.equals("Calcutta"))
+                            CURRENT_CITY="kolkata";
+                    else
+                            CURRENT_CITY = result;
+
                     Log.d("yolo", "current city: " + CURRENT_CITY);
                 }
             }
