@@ -16,6 +16,8 @@ import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.provider.Settings;
@@ -72,11 +74,13 @@ import com.google.android.gms.vision.text.Text;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements GestureDetector.OnGestureListener,com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -122,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private String CURRENT_FUEL_TYPE;
     private double CURRENT_LITRES;
     private String CURRENT_FAVOURITE;
+    private String CURRENT_CITY="";
 
     private static boolean preferencesUpdated=false;
     SQLiteDatabase database;
@@ -525,6 +530,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
         currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
 
+
+        getCity();
+
         getCurrentRate();
 
         
@@ -636,6 +644,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         }
 
         mCurrentLocation = location;
+        getCity();
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         getPlace();
     }
@@ -838,7 +847,12 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
     private void getCurrentRate()
     {
-            String Url="http://fuelpriceindia.herokuapp.com/price?city=hyderabad";
+
+        String Url;
+        if(CURRENT_CITY=="")
+            Url="http://fuelpriceindia.herokuapp.com/price?city=hyderabad";
+        else
+            Url="http://fuelpriceindia.herokuapp.com/price?city="+CURRENT_CITY;
             RequestQueue queue= Volley.newRequestQueue(this);
             JsonObjectRequest getRequest= new JsonObjectRequest(Request.Method.GET, Url, null, new Response.Listener<JSONObject>() {
                 @Override
@@ -847,41 +861,59 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
                     try {
 
-                        if(CURRENT_FUEL_TYPE.equals("Petrol"))
-                            if(response.getString("petrol")==null || response.getString("petrol").equals("null"))
-                                CURRENT_RATE=CURRENT_PETROL_RATE;
-                            else {
-                                CURRENT_RATE = Double.parseDouble(response.getString("petrol"));
-                                android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("petrolRate", (float) CURRENT_RATE).apply();
-                                android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("dieselRate", (float) Double.parseDouble(response.getString("diesel"))).apply();
-                            }
-                        else
-                            if(response.getString("diesel")==null || response.getString("diesel").equals("null"))
-                                CURRENT_RATE=CURRENT_DIESEL_RATE;
+
+
+                        if(response.has("city")) {
+
+                            if (CURRENT_FUEL_TYPE.equals("Petrol"))
+                                if (response.getString("petrol") == null || response.getString("petrol").equals("null"))
+                                    CURRENT_RATE = CURRENT_PETROL_RATE;
+                                else {
+                                    CURRENT_RATE = Double.parseDouble(response.getString("petrol"));
+                                    android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("petrolRate", (float) CURRENT_RATE).apply();
+                                    android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("dieselRate", (float) Double.parseDouble(response.getString("diesel"))).apply();
+                                }
+                            else if (response.getString("diesel") == null || response.getString("diesel").equals("null"))
+                                CURRENT_RATE = CURRENT_DIESEL_RATE;
                             else {
                                 CURRENT_RATE = Double.parseDouble(response.getString("diesel"));
                                 android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("dieselRate", (float) CURRENT_RATE).apply();
                                 android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("petrolRate", (float) Double.parseDouble(response.getString("petrol"))).apply();
                             }
-                        currentRateTextView.setText("₹"+(String.valueOf(CURRENT_RATE)));
-                        CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
-                        currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
-
+                            currentRateTextView.setText("₹" + (String.valueOf(CURRENT_RATE)));
+                            CURRENT_LITRES = Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
+                            currentLitresTextView.setText((String.valueOf(String.format("%.2f", CURRENT_LITRES))));
+                        }
+                        else
+                        {
+                            if(CURRENT_FUEL_TYPE.equals("Petrol"))
+                            {
+                                CURRENT_RATE=CURRENT_PETROL_RATE;
+                            }
+                            else
+                            {
+                                CURRENT_RATE=CURRENT_DIESEL_RATE;
+                            }
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
 
-                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AppTheme);
-                        alertDialog.setMessage("You are not connected to the internet right now. Please try again later.");
-                        alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        });
-                        alertDialog.setNegativeButton("Cancel", null);
-                        AlertDialog a = alertDialog.create();
-                        a.show();
-                        Window window = a.getWindow();
-                        window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+//                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AppTheme);
+//                        alertDialog.setMessage("You are not connected to the internet right now. Please try again later.");
+//                        alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                            }
+//                        });
+//                        alertDialog.setNegativeButton("Cancel", null);
+//                        AlertDialog a = alertDialog.create();
+//                        a.show();
+//                        Window window = a.getWindow();
+//                        window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+
+
+
+
 
                         Log.d(TAG, e.toString());
                     }
@@ -954,6 +986,41 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
 
         
+    }
+
+
+
+    protected void getCity() {
+        Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+        List<Address> list = null;
+        try {
+            list = geoCoder.getFromLocation(mCurrentLocation
+                    .getLatitude(), mCurrentLocation.getLongitude(), 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d("yolo", e.toString());
+        }
+        catch (NullPointerException e){
+            e.printStackTrace();
+            Log.d("yolo", e.toString());
+        }
+        if (list != null) {
+
+            if(list.size()>0) {
+
+
+                Address address = list.get(0);
+                String result = address.getLocality();
+                Log.d("yolo", "current city: " + result);
+                if (CURRENT_CITY == "") {
+                    CURRENT_CITY = result;
+                    Log.d("yolo", "current city: " + CURRENT_CITY);
+                }
+            }
+
+        }
+
+        getCurrentRate();
     }
 
 
