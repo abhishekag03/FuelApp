@@ -3,6 +3,7 @@ package com.example.android.fuelapp;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.fuelapp.data.FuelAdapter;
@@ -34,6 +36,9 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
 
     private float x1,x2;
     private float y1,y2;
+
+
+    private double totalCost=0;
 
     public static boolean isRunning=false;
 
@@ -79,6 +84,14 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
             mRecyclerView.setHasFixedSize(true);
 
             initView();
+
+            if((TextView) findViewById(R.id.total_money_spent)!=null){
+                Log.d("database", "total money: "+totalCost+", txt set");
+                Typeface oratorSTD=Typeface.createFromAsset(getAssets(), "fonts/OratorStd.otf");
+                ((TextView) findViewById(R.id.total_money_spent)).setTypeface(oratorSTD);
+                ((TextView) findViewById(R.id.total_money_spent)).setText("Total Money Spent: ₹"+totalCost);
+            }
+
 
         }
 
@@ -180,6 +193,7 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
         if (cursor.moveToFirst()) {
 
 
+            totalCost=0;
             arrayForTimelineDate.clear();
             arrayForTimelineFuelType.clear();
             arrayForTimelineLocation.clear();
@@ -198,6 +212,7 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
                 arrayForTimelineLocation.add(location);
                 arrayForTimelineCost.add(cost);
                 arrayForTimelineLitres.add(litres);
+                totalCost+=Double.parseDouble(cost);
                 cursor.moveToNext();
             }
         }
@@ -225,7 +240,7 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
 
                 if(x1<x2)
                 {
-                    Toast.makeText(getApplicationContext(), "Left to right swipe performed", Toast.LENGTH_SHORT).show();
+                   // Toast.makeText(getApplicationContext(), "Left to right swipe performed", Toast.LENGTH_SHORT).show();
                     finish();
                 }
 
