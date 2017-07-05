@@ -279,6 +279,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     sharedPreferences.edit().putString("FuelType", "Diesel").apply();
                     CURRENT_FUEL_TYPE="Diesel";
                     getCurrentRate();
+                    Log.d("oncheck", "diesel: "+CURRENT_RATE);
                     //diesel
 
                 }
@@ -286,6 +287,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     sharedPreferences.edit().putString("FuelType", "Petrol").apply();;
                     CURRENT_FUEL_TYPE="Petrol";
                     getCurrentRate();
+                    Log.d("oncheck", "petrol: "+CURRENT_RATE);
                 }
             }
         });
@@ -560,6 +562,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("FuelType", "Diesel").apply();
                     CURRENT_FUEL_TYPE="Diesel";
                     getCurrentRate();
+                    Log.d("oncheck", "diesel: "+CURRENT_RATE);
                     //diesel
 
                 }
@@ -567,6 +570,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("FuelType", "Petrol").apply();;
                     CURRENT_FUEL_TYPE="Petrol";
                     getCurrentRate();
+                    Log.d("oncheck", "petrol: "+CURRENT_RATE);
                 }
             }
         });
@@ -939,22 +943,30 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
                         if(response.has("city")) {
 
-                            if (CURRENT_FUEL_TYPE.equals("Petrol"))
+                            if (CURRENT_FUEL_TYPE.equals("Petrol")) {
                                 if (response.getString("petrol") == null || response.getString("petrol").equals("null"))
+                                {
                                     CURRENT_RATE = CURRENT_PETROL_RATE;
+                                    Log.d("oncheck",CURRENT_RATE+"");}
                                 else {
                                     CURRENT_RATE = Double.parseDouble(response.getString("petrol"));
                                     android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("petrolRate", (float) CURRENT_RATE).apply();
                                     android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("dieselRate", (float) Double.parseDouble(response.getString("diesel"))).apply();
+                                    Log.d("oncheck",CURRENT_RATE+"");
                                 }
-                            else if (response.getString("diesel") == null || response.getString("diesel").equals("null"))
-                                CURRENT_RATE = CURRENT_DIESEL_RATE;
-                            else {
-                                CURRENT_RATE = Double.parseDouble(response.getString("diesel"));
-                                android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("dieselRate", (float) CURRENT_RATE).apply();
-                                android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("petrolRate", (float) Double.parseDouble(response.getString("petrol"))).apply();
                             }
-                            currentRateTextView.setText("₹" + (String.valueOf(CURRENT_RATE)));
+                            else {
+                                if (response.getString("diesel") == null || response.getString("diesel").equals("null"))
+                                {CURRENT_RATE = CURRENT_DIESEL_RATE;
+                                    Log.d("oncheck",CURRENT_RATE+"");}
+                                else {
+                                    CURRENT_RATE = Double.parseDouble(response.getString("diesel"));
+                                    android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("dieselRate", (float) CURRENT_RATE).apply();
+                                    android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putFloat("petrolRate", (float) Double.parseDouble(response.getString("petrol"))).apply();
+                                    Log.d("oncheck",CURRENT_RATE+"");
+                                }
+                            }
+                            currentRateTextView.setText("₹" + (String.valueOf(String.format("%.2f",CURRENT_RATE))));
                             CURRENT_LITRES = Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
                             currentLitresTextView.setText((String.valueOf(String.format("%.2f", CURRENT_LITRES))));
                         }
@@ -1011,12 +1023,18 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                                         if(CURRENT_FUEL_TYPE.equals("Petrol"))
                                         {
                                             CURRENT_RATE=CURRENT_PETROL_RATE;
+                                            Log.d("network", CURRENT_PETROL_RATE+"");
                                         }
                                         else
                                         {
                                             CURRENT_RATE=CURRENT_DIESEL_RATE;
+                                            Log.d("network", CURRENT_DIESEL_RATE+"");
                                         }
                                     }
+
+                                    currentRateTextView.setText("₹" + (String.valueOf(String.format("%.2f", CURRENT_RATE))));
+                                    CURRENT_LITRES = Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
+                                    currentLitresTextView.setText((String.valueOf(String.format("%.2f", CURRENT_LITRES))));
                                     Log.d("network", res);
                                 }
                                 catch (UnsupportedEncodingException e1){
