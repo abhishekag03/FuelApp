@@ -43,6 +43,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -86,8 +87,24 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+class MapObject
+{
+    double distance;
+   double latitude;
+    double longitude;
+
+    public MapObject(double d, double lat, double lon)
+    {
+        this.distance=d;
+        this.latitude=lat;
+        this.longitude=lon;
+    }
+}
 
 public class MainActivity extends AppCompatActivity implements GestureDetector.OnGestureListener,com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -98,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     public static List<String> arrayForTimelineFuelType=new ArrayList<>();
     public static List<String> arrayForTimelineDate=new ArrayList<>();
     public static List<String> arrayForTimelineLocation=new ArrayList<>();
+
 
     public String TAG = "database";
 
@@ -136,6 +154,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private double CURRENT_LITRES;
     private String CURRENT_FAVOURITE;
     private String CURRENT_CITY="";
+
+
+    public static HashMap<String, MapObject> mapContainingCities = new HashMap<String, MapObject>();
 
     private static boolean preferencesUpdated=false;
     SQLiteDatabase database;
@@ -206,6 +227,60 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_secondary1);
         //getSupportActionBar().hide();
+
+
+
+
+
+        mapContainingCities.put("New Delhi", new MapObject(-1, 28.6139, 77.2090));
+        mapContainingCities.put("Kolkata", new MapObject(-1, 22.5726, 88.3639));
+        mapContainingCities.put("Mumbai", new MapObject(-1,19.0760, 72.8777));
+        mapContainingCities.put("Chennai", new MapObject(-1, 13.0827, 80.2707));
+        mapContainingCities.put("Faridabad", new MapObject(-1,28.4089, 77.3178));
+        mapContainingCities.put("Gurgaon", new MapObject(-1, 28.4595, 77.0266));
+        mapContainingCities.put("Noida", new MapObject(-1, 28.5355, 77.3910));
+        mapContainingCities.put("Ghaziabad", new MapObject(-1, 28.6692, 77.4538));
+        mapContainingCities.put("Agartala", new MapObject(-1, 23.8315, 91.2868));
+        mapContainingCities.put("Aizwal", new MapObject(-1, 23.7271, 92.7176));
+        mapContainingCities.put("Ambala", new MapObject(-1, 30.3782, 76.7767));
+        mapContainingCities.put("Bangalore", new MapObject(-1, 12.9716, 77.5946));
+        mapContainingCities.put("Bhopal", new MapObject(-1, 23.2599, 77.4126));
+        mapContainingCities.put("Bhubhaneswar", new MapObject(-1, 20.2961, 85.8245));
+        mapContainingCities.put("Chandigarh", new MapObject(-1, 30.7333, 76.7794));
+        mapContainingCities.put("Dehradun", new MapObject(-1, 30.3165, 78.0322));
+        mapContainingCities.put("Gandhinagar", new MapObject(-1, 23.2156, 72.6369));
+        mapContainingCities.put("Gangtok", new MapObject(-1, 27.3389, 88.6065));
+        mapContainingCities.put("Guwahati", new MapObject(-1, 26.1445, 91.7362));
+        mapContainingCities.put("Hyderabad", new MapObject(-1, 17.3850, 78.4867));
+        mapContainingCities.put("Imphal", new MapObject(-1, 24.8170, 93.9368));
+        mapContainingCities.put("Itanagar", new MapObject(-1, 27.0844, 93.6053));
+        mapContainingCities.put("Jaipur", new MapObject(-1, 26.9124, 75.7873));
+        mapContainingCities.put("Jammu", new MapObject(-1, 33.7782, 76.5762));
+        mapContainingCities.put("Jullunder", new MapObject(-1, 31.3260, 75.5762));
+        mapContainingCities.put("Kohima", new MapObject(-1, 25.6586, 94.1053));
+        mapContainingCities.put("Lucknow", new MapObject(-1, 26.8467, 80.9462));
+        mapContainingCities.put("Panjim", new MapObject(-1, 15.4909, 73.8278));
+        mapContainingCities.put("Patna", new MapObject(-1, 25.5941, 85.1376));
+        mapContainingCities.put("Pondichery", new MapObject(-1, 11.9139, 79.8145));
+        mapContainingCities.put("Port Blair", new MapObject(-1, 11.6234, 92.7265));
+        mapContainingCities.put("Raipur", new MapObject(-1, 21.2514, 81.6296));
+        mapContainingCities.put("Ranchi", new MapObject(-1, 23.3441, 85.3096));
+        mapContainingCities.put("Shillong", new MapObject(-1, 25.5788, 91.8933));
+        mapContainingCities.put("Shimla", new MapObject(-1, 31.1048, 77.1734));
+        mapContainingCities.put("Srinagar", new MapObject(-1, 34.0837, 74.7973));
+        mapContainingCities.put("Trivandrum", new MapObject(-1, 8.5241, 76.9366));
+        mapContainingCities.put("Silvasa", new MapObject(-1, 20.2763, 73.0083));
+        mapContainingCities.put("Daman", new MapObject(-1, 20.4283, 72.8397));
+
+
+
+
+
+
+
+
+
+
 
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setCustomView(R.layout.action_bar_main);
@@ -604,7 +679,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
 
 
-        getCity();
+        updatedGetCity();
 
         getCurrentRate();
 
@@ -717,7 +792,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         }
 
         mCurrentLocation = location;
-        getCity();
+        updatedGetCity();
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         getPlace();
     }
@@ -1161,6 +1236,52 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         }
 
         getCurrentRate();
+    }
+
+
+
+    protected void updatedGetCity()
+    {
+
+        if (mCurrentLocation != null)
+        {
+
+            double currentLat=mCurrentLocation.getLatitude();
+            double currentLon=mCurrentLocation.getLongitude();
+
+
+            for(Map.Entry<String, MapObject> entry: mapContainingCities.entrySet())
+            {
+                float[] results=new float[1];
+                Location.distanceBetween(currentLat, currentLon, entry.getValue().latitude, entry.getValue().longitude, results);
+                float distance=results[0];
+
+
+                MapObject m=new MapObject(distance, entry.getValue().latitude, entry.getValue().longitude);
+
+                entry.setValue(m);
+
+               // Log.d("city", m.distance+" "+entry.getKey());
+            }
+
+            double minDistance=mapContainingCities.get("New Delhi").distance;
+
+            String city="New Delhi";
+
+            for(Map.Entry<String, MapObject> entry: mapContainingCities.entrySet()) {
+                if (entry.getValue().distance < minDistance) {
+                    minDistance = entry.getValue().distance;
+                    city=entry.getKey();
+                }
+            }
+
+            Log.d("city", minDistance+"minimum "+city);
+            CURRENT_CITY=city;
+            getCurrentRate();
+
+        }
+
+
     }
 
 
