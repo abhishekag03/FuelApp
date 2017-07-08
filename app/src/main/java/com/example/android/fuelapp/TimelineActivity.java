@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -33,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TimelineActivity extends AppCompatActivity implements GestureDetector.OnGestureListener,FuelAdapter.ListItemClickListener
+public class TimelineActivity extends AppCompatActivity implements FuelAdapter.ListItemClickListener
 {
 
 
@@ -76,7 +77,7 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
 
             shouldDisplayMenuDelete=true;
 
-            getSupportActionBar().setTitle("Timeline");
+            getSupportActionBar().setTitle("Fuel Log");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back_button);
@@ -100,9 +101,68 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
                 Log.d("database", "total money: "+totalCost+", txt set");
                 Typeface oratorSTD=Typeface.createFromAsset(getAssets(), "fonts/OratorStd.otf");
                 ((TextView) findViewById(R.id.total_money_spent)).setTypeface(oratorSTD);
-                ((TextView) findViewById(R.id.total_money_spent)).setText("Total Money Spent: ₹"+totalCost);
+                ((TextView) findViewById(R.id.total_money_spent)).setText("Total Money Spent: ₹" + totalCost);
             }
 
+            ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
+                }
+
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                    final int position = viewHolder.getAdapterPosition(); //get position which is swipe
+
+                    if(swipeDir == ItemTouchHelper.LEFT){
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(TimelineActivity.this); //alert for confirm to delete
+                        builder.setMessage("Are you sure to delete?");    //set message
+
+                        builder.setPositiveButton("REMOVE", new DialogInterface.OnClickListener() { //when click on DELETE
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mFuelAdapter.notifyItemRemoved(position);    //item removed from recylcerview
+                                arrayForTimelineCost.remove(position);  //then remove item
+                                arrayForTimelineDate.remove(position);
+                                arrayForTimelineFuelType.remove(position);
+                                arrayForTimelineLitres.remove(position);
+                                arrayForTimelineLocation.remove(position);
+                            }
+                        }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mFuelAdapter.notifyItemRemoved(position + 1);    //notifies the RecyclerView Adapter that data in adapter has been removed at a particular position.
+                                mFuelAdapter.notifyItemRangeChanged(position, mFuelAdapter.getItemCount());   //notifies the RecyclerView Adapter that positions of element in adapter has been changed from position(removed element index to end of list), please update it.
+                            }
+                        }).show();  //show alert dialog
+
+                        SQLiteDatabase database=new FuelDbHelper(getApplicationContext()).getReadableDatabase();
+
+//                        Cursor cursor= database.rawQuery("SELECT _id, " + FuelContract.FuelEntry.COLUMN_LOCATION + " from "+ FuelContract.FuelEntry.TABLE_NAME, null );
+//                        while(cursor.moveToNext()){
+//                            Log.d("DATABASE ENTRIES:", "ID: " + cursor.getInt(0) + ", AdapterID: " + id + ", Location: " + cursor.getString(1));
+//                        }
+                        Cursor cursor= database.rawQuery("SELECT " + FuelContract.FuelEntry.COLUMN_LOCATION + " from "+ FuelContract.FuelEntry.TABLE_NAME + " where _id=" + (position + 1), null );
+                        cursor.moveToFirst();
+                        String locationToDelete = cursor.getString(0);
+                        Toast.makeText(getApplicationContext(), locationToDelete + " will be deleted", Toast.LENGTH_LONG).show();
+
+                        // TODO: Check why is the list order not same as that in the database
+
+// Delete the entry from the database
+// Cursor cursor= database.rawQuery("DELETE from "+ FuelContract.FuelEntry.TABLE_NAME + " WHERE id = " + id, null );
+
+                        database.close();
+                    }else{
+                        return;
+                    }
+                }
+            };
+
+            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+            itemTouchHelper.attachToRecyclerView(mRecyclerView);
 
         }
 
@@ -117,6 +177,7 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back_button);
         }
+
     }
 
     @Override
@@ -318,82 +379,6 @@ public class TimelineActivity extends AppCompatActivity implements GestureDetect
 
 
         database.close();
-    }
-
-
-    public boolean onTouchEvent(MotionEvent touchEvent)
-    {
-        switch (touchEvent.getAction())
-        {
-            case  MotionEvent.ACTION_DOWN:
-            {
-                x1=touchEvent.getX();
-                y1=touchEvent.getY();
-                break;
-            }
-
-            case MotionEvent.ACTION_UP:
-            {
-                x2=touchEvent.getX();
-                y2=touchEvent.getY();
-
-                if(x1<x2)
-                {
-                   // Toast.makeText(getApplicationContext(), "Left to right swipe performed", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-
-                if(x1>x2)
-                {
-                    //Toast.makeText(getApplicationContext(), "Right to left swipe performed", Toast.LENGTH_SHORT).show();
-                }
-                break;
-            }
-        }
-
-        return false;
-    }
-
-
-    @Override
-    public boolean onDown(MotionEvent e) {
-        onTouchEvent(e);
-        Toast.makeText(getApplicationContext(), "onDown", Toast.LENGTH_SHORT).show();
-        return true;
-    }
-
-    @Override
-    public void onShowPress(MotionEvent e) {
-        Toast.makeText(getApplicationContext(), "onShowPress", Toast.LENGTH_SHORT).show();
-        onTouchEvent(e);
-    }
-
-    @Override
-    public boolean onSingleTapUp(MotionEvent e) {
-        Toast.makeText(getApplicationContext(), "onSingleTapUp", Toast.LENGTH_SHORT).show();
-        onTouchEvent(e);
-        return true;
-    }
-
-    @Override
-    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        Toast.makeText(getApplicationContext(), "onScroll", Toast.LENGTH_SHORT).show();
-        onTouchEvent(e1);
-        return true;
-    }
-
-    @Override
-    public void onLongPress(MotionEvent e) {
-        Toast.makeText(getApplicationContext(), "onLongPress", Toast.LENGTH_SHORT).show();
-        onTouchEvent(e);
-    }
-
-    @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-
-        Toast.makeText(getApplicationContext(), "onFling", Toast.LENGTH_SHORT).show();
-        onTouchEvent(e1);
-        return false;
     }
 
 }

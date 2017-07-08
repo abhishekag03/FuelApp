@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">FuelApp</string>
     <string name="title_activity_main1">Main1Activity</string>
+    <string name="frequent">FREQUENT</string>
+    <string name="favourite">FAVOURITE</string>
+    <string name="last_used">LAST USED</string>
 </resources>

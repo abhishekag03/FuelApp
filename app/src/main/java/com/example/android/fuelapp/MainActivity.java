@@ -788,7 +788,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
             }
             //fillButton.setBackgroundColor(getResources().getColor(R.color.mainBlock));
-            fillButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.mainBlock)));
+            fillButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(android.R.color.darker_gray)));
         }
 
         mCurrentLocation = location;
