@@ -113,51 +113,47 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
 
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+
                     final int position = viewHolder.getAdapterPosition(); //get position which is swipe
 
-                    if(swipeDir == ItemTouchHelper.LEFT){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(TimelineActivity.this); //alert for confirm to delete
+                    builder.setMessage("Are you sure to delete?");    //set message
 
-                        AlertDialog.Builder builder = new AlertDialog.Builder(TimelineActivity.this); //alert for confirm to delete
-                        builder.setMessage("Are you sure to delete?");    //set message
+                    builder.setPositiveButton("REMOVE", new DialogInterface.OnClickListener() { //when click on DELETE
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mFuelAdapter.notifyItemRemoved(position);    //item removed from recylcerview
+                            arrayForTimelineCost.remove(position);  //then remove item
+                            arrayForTimelineDate.remove(position);
+                            arrayForTimelineFuelType.remove(position);
+                            arrayForTimelineLitres.remove(position);
+                            arrayForTimelineLocation.remove(position);
+                        }
+                    }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mFuelAdapter.notifyItemRemoved(position + 1);    //notifies the RecyclerView Adapter that data in adapter has been removed at a particular position.
+                            mFuelAdapter.notifyItemRangeChanged(position, mFuelAdapter.getItemCount());   //notifies the RecyclerView Adapter that positions of element in adapter has been changed from position(removed element index to end of list), please update it.
+                        }
+                    }).show();  //show alert dialog
 
-                        builder.setPositiveButton("REMOVE", new DialogInterface.OnClickListener() { //when click on DELETE
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mFuelAdapter.notifyItemRemoved(position);    //item removed from recylcerview
-                                arrayForTimelineCost.remove(position);  //then remove item
-                                arrayForTimelineDate.remove(position);
-                                arrayForTimelineFuelType.remove(position);
-                                arrayForTimelineLitres.remove(position);
-                                arrayForTimelineLocation.remove(position);
-                            }
-                        }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mFuelAdapter.notifyItemRemoved(position + 1);    //notifies the RecyclerView Adapter that data in adapter has been removed at a particular position.
-                                mFuelAdapter.notifyItemRangeChanged(position, mFuelAdapter.getItemCount());   //notifies the RecyclerView Adapter that positions of element in adapter has been changed from position(removed element index to end of list), please update it.
-                            }
-                        }).show();  //show alert dialog
-
-                        SQLiteDatabase database=new FuelDbHelper(getApplicationContext()).getReadableDatabase();
+                    SQLiteDatabase database=new FuelDbHelper(getApplicationContext()).getReadableDatabase();
 
 //                        Cursor cursor= database.rawQuery("SELECT _id, " + FuelContract.FuelEntry.COLUMN_LOCATION + " from "+ FuelContract.FuelEntry.TABLE_NAME, null );
 //                        while(cursor.moveToNext()){
 //                            Log.d("DATABASE ENTRIES:", "ID: " + cursor.getInt(0) + ", AdapterID: " + id + ", Location: " + cursor.getString(1));
 //                        }
-                        Cursor cursor= database.rawQuery("SELECT " + FuelContract.FuelEntry.COLUMN_LOCATION + " from "+ FuelContract.FuelEntry.TABLE_NAME + " where _id=" + (position + 1), null );
-                        cursor.moveToFirst();
-                        String locationToDelete = cursor.getString(0);
-                        Toast.makeText(getApplicationContext(), locationToDelete + " will be deleted", Toast.LENGTH_LONG).show();
+                    Cursor cursor= database.rawQuery("SELECT " + FuelContract.FuelEntry.COLUMN_LOCATION + " from "+ FuelContract.FuelEntry.TABLE_NAME + " where _id=" + (position + 1), null );
+                    cursor.moveToFirst();
+                    String locationToDelete = cursor.getString(0);
+                    Toast.makeText(getApplicationContext(), locationToDelete + " will be deleted", Toast.LENGTH_LONG).show();
 
-                        // TODO: Check why is the list order not same as that in the database
+                    // TODO: Check why is the list order not same as that in the database
 
 // Delete the entry from the database
 // Cursor cursor= database.rawQuery("DELETE from "+ FuelContract.FuelEntry.TABLE_NAME + " WHERE id = " + id, null );
 
-                        database.close();
-                    }else{
-                        return;
-                    }
+                    database.close();
                 }
             };
 

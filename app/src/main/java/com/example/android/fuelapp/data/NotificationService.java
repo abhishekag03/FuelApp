@@ -64,7 +64,7 @@ public class NotificationService extends Service implements com.google.android.g
     private Location mCurrentLocation;
     private String mLastUpdateTime;
 
-    public static boolean notificationIsSent=false;
+    public static boolean notificationIsSent = false;
 
 
     private static final long INTERVAL = 10000;
@@ -108,10 +108,9 @@ public class NotificationService extends Service implements com.google.android.g
             }
         } else {
             // Toast.makeText(this, "" + permission + " is already granted.", Toast.LENGTH_SHORT).show();
-            Log.d("databaseService", ""+permission+" is already granted. ");
+            Log.d("databaseService", "" + permission + " is already granted. ");
         }
     }
-
 
 
     @Override
@@ -147,7 +146,7 @@ public class NotificationService extends Service implements com.google.android.g
 
         int mNotificationId = 001;
 
-        notificationIsSent=true;
+        notificationIsSent = true;
 
         NotificationManager mNotifymgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mNotifymgr.notify(mNotificationId, mBuilder.build());
@@ -187,15 +186,13 @@ public class NotificationService extends Service implements com.google.android.g
     }
 
 
-
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
         try {
 
             startLocationUpdates();
-        }
-        catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             e.printStackTrace();
             Log.d("network", e.toString());
         }
@@ -241,8 +238,8 @@ public class NotificationService extends Service implements com.google.android.g
     @Override
     public void onLocationChanged(Location location) {
 
-       // notificationIsSent=false;
-        mCurrentLocation = location;
+        // notificationIsSent=false;
+        MainActivity.mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         getPlace();
     }
@@ -254,61 +251,27 @@ public class NotificationService extends Service implements com.google.android.g
             return;
         }
 
-
-//        if(mCurrentLocation==null) {
-//
-//
-//            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-//            alertDialog.setMessage("Location Permission is required for this app to work. Please turn on location");
-//            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                    startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-//                }
-//            });
-//            alertDialog.setNegativeButton("Cancel", null);
-//            AlertDialog a = alertDialog.create();
-//            a.show();
-//            Window window = a.getWindow();
-//            window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
-//
-//            // Toast.makeText(getApplicationContext(), "mCurrentLocation is null", Toast.LENGTH_SHORT).show();
-//        }
-
         Awareness.SnapshotApi.getPlaces(mGoogleApiClient).setResultCallback(new ResultCallback<PlacesResult>() {
             @Override
             public void onResult(@NonNull PlacesResult placesResult) {
                 if (!placesResult.getStatus().isSuccess()) {
                     Log.e("databaseService", "Could not get places");
-                    //AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AppTheme);
-                    //alertDialog.setMessage("You are not connected to the internet right now. Please try again later.");
-                    //alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                      //  @Override
-                       // public void onClick(DialogInterface dialog, int which) {
-                        //}
-                    //});
-                    //alertDialog.setNegativeButton("Cancel", null);
-                    //AlertDialog a = alertDialog.create();
-                    //a.show();
-                    //Window window = a.getWindow();
-                    //window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
-                    //return;
                 }
                 List<PlaceLikelihood> placeLikelihoodList = placesResult.getPlaceLikelihoods();
                 if (placeLikelihoodList != null) {
 
-                    MainActivity.CURRENT_LOCATION=placeLikelihoodList.get(0).getPlace().getName().toString();
+                    MainActivity.CURRENT_LOCATION = placeLikelihoodList.get(0).getPlace().getName().toString();
 
 
-                    if(placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41) && !notificationIsSent && !MainActivity.isRunning && !TimelineActivity.isRunning && !SettingsActivity.isRunning){
-                     //   Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
-                        notificationIsSent=true;
+                    if (placeLikelihoodList.get(0).getPlace().getPlaceTypes().contains(41) && !notificationIsSent && !MainActivity.isRunning && !TimelineActivity.isRunning && !SettingsActivity.isRunning) {
+                        //   Toast.makeText(getApplicationContext(), "Fuel station found", Toast.LENGTH_SHORT).show();
+                        notificationIsSent = true;
                         sendNotification();
                     }
 
                     for (int i = 0; i < placeLikelihoodList.size(); i++) {
                         PlaceLikelihood p = placeLikelihoodList.get(i);
-                        Log.d("databaseService", p.getPlace().getName().toString() +",place type: "+p.getPlace().getPlaceTypes().contains(41));
+                        Log.d("databaseService", p.getPlace().getName().toString() + ",place type: " + p.getPlace().getPlaceTypes().contains(41));
 
 
                     }
@@ -318,7 +281,6 @@ public class NotificationService extends Service implements com.google.android.g
 
             }
         });
-
     }
 
 
@@ -326,7 +288,7 @@ public class NotificationService extends Service implements com.google.android.g
     public void onDestroy() {
         super.onDestroy();
         Log.d("databaseService", "came to on destroy of notif service");
-        Intent restartService= new Intent("RestartService");
+        Intent restartService = new Intent("RestartService");
         sendBroadcast(restartService);
     }
 
