@@ -11,10 +11,7 @@
 
     </item>
     <item android:drawable="@drawable/petrol_drop"
+        android:gravity="center"
         android:height="@dimen/marker_drop_size"
-        android:width="@dimen/marker_drop_size"
-        android:top="@dimen/marker_padding"
-        android:bottom="@dimen/marker_padding"
-        android:left="@dimen/marker_padding"
-        android:right="@dimen/marker_padding"/>
+        android:width="@dimen/marker_drop_size"/>
 </layer-list>

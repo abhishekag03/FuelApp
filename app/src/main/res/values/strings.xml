@@ -5,4 +5,8 @@
     <string name="favourite">FAVOURITE</string>
     <string name="last_used">LAST USED</string>
     <string name="price">PRICE</string>
+    <string name="petrol">Petrol</string>
+    <string name="diesel">Diesel</string>
+    <string name="litres">LITRES</string>
+    <string name="rate">RATE</string>
 </resources>

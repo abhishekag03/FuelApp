@@ -10,4 +10,5 @@
     <color name="mainBlock">#181818</color>
     <color name="bottomBlockLeft">#00e676</color>
     <color name="bottomBlockRight">#43a047</color>
+    <color name="diesel">#00AAFF</color>
 </resources>

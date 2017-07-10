@@ -70,11 +70,13 @@ public class FuelAdapter extends RecyclerView.Adapter<FuelAdapter.NumberViewHold
 
         Log.d(TAG, "#"+position);
 
-        setDateVariables(TimelineActivity.arrayForTimelineDate.get(position));
-        holder.bind(TimelineActivity.arrayForTimelineCost.get(position), TimelineActivity.arrayForTimelineLitres.get(position), TimelineActivity.arrayForTimelineLocation.get(position), DAY, DATE, MONTH, TIME);
+        int new_position = holder.getAdapterPosition();
+
+        setDateVariables(TimelineActivity.arrayForTimelineDate.get(new_position));
+        holder.bind(TimelineActivity.arrayForTimelineCost.get(new_position), TimelineActivity.arrayForTimelineLitres.get(new_position), TimelineActivity.arrayForTimelineLocation.get(position), DAY, DATE, MONTH, TIME);
 
 
-        if(TimelineActivity.arrayForTimelineFuelType.get(position).equals("Petrol"))
+        if(TimelineActivity.arrayForTimelineFuelType.get(new_position).equals("Petrol"))
         {
             mTimelineView.setMarker(holder.itemView.getResources().getDrawable(R.drawable.ic_marker_petrol));
         }

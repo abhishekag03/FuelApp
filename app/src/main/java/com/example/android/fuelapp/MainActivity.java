@@ -1,28 +1,17 @@
 package com.example.android.fuelapp;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -30,11 +19,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.app.NotificationCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.SwitchCompat;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -42,16 +29,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.MimeTypeMap;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Network;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -64,25 +47,12 @@ import com.android.volley.toolbox.Volley;
 import com.example.android.fuelapp.data.FuelContract;
 import com.example.android.fuelapp.data.FuelDbHelper;
 import com.example.android.fuelapp.data.NotificationService;
-import com.google.android.gms.awareness.Awareness;
-import com.google.android.gms.awareness.snapshot.PlacesResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.vision.text.Text;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -90,9 +60,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 class MapObject {
     double distance;
@@ -109,44 +77,27 @@ class MapObject {
 public class MainActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final int REQUEST_LOCATION_PERMISSION = 122;
-    ;
-
 
     public static List<String> arrayForTimelineFuelType = new ArrayList<>();
     public static List<String> arrayForTimelineDate = new ArrayList<>();
     public static List<String> arrayForTimelineLocation = new ArrayList<>();
 
-
     public String TAG = "database";
-
 
     public static boolean isRunning = false;
     private static boolean CURRENT_LOCATION_IS_FUEL_STATION = false;
 
     public final static String EXTRA_ORIENTATION = "EXTRA_ORIENTATION";
     public final static String EXTRA_WITH_LINE_PADDING = "EXTRA_WITH_LINE_PADDING";
-
-
-    private static final long INTERVAL = 10000;
-    private static final long FASTEST_INTERVAL = 5000;
-
-    private LocationRequest mLocationRequest;
-    private GoogleApiClient mGoogleApiClient;
     public static Location mCurrentLocation;
-    private String mLastUpdateTime;
-
 
     private float x1, x2;
     private float y1, y2;
-
     private AlertDialog a;
     private SwitchCompat fuelTypeSwitch;
 
-
     public static String CURRENT_LOCATION;
     private double CURRENT_COST;
-    private long CURRENT_LATITUDE;
-    private long CURRENT_LONGITUDE;
     private double CURRENT_PETROL_RATE;
     private double CURRENT_DIESEL_RATE;
     private double CURRENT_RATE;
@@ -154,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private double CURRENT_LITRES;
     private String CURRENT_FAVOURITE;
     private String CURRENT_CITY = "";
+    private SharedPreferences sharedPreferences = null;
 
 
     public static HashMap<String, MapObject> mapContainingCities = new HashMap<String, MapObject>();
@@ -162,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     SQLiteDatabase database;
 
 
-    private EditText currentFuelTextview;
+    private EditText currentFuelEditText;
     private TextView currentLitresTextView;
     private TextView currentRateTextView;
     private TextView favouriteFuelTextView;
@@ -209,22 +161,11 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         }
     }
 
-
-    protected void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(INTERVAL);
-        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_secondary1);
         //getSupportActionBar().hide();
-
-        dialogBuilder = new AlertDialog.Builder(this);
 
         mapContainingCities.put("New Delhi", new MapObject(-1, 28.6139, 77.2090));
         mapContainingCities.put("Kolkata", new MapObject(-1, 22.5726, 88.3639));
@@ -288,34 +229,33 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         favouriteHolder.setTypeface(oratorSTD);
         frequentHolder.setTypeface(oratorSTD);
         lastUsedHolder.setTypeface(oratorSTD);
+        ((TextView) findViewById(R.id.petrol_switch)).setTypeface(oratorSTD);
+        ((TextView) findViewById(R.id.diesel_switch)).setTypeface(oratorSTD);
 
-
-        currentFuelTextview = (EditText) findViewById(R.id.current_fuel_cost);
+        currentFuelEditText = (EditText) findViewById(R.id.current_fuel_cost);
         currentLitresTextView = (TextView) findViewById(R.id.current_fuel_litres);
         currentRateTextView = (TextView) findViewById(R.id.current_fuel_rate);
         favouriteFuelTextView = (TextView) findViewById(R.id.favourite_fuel_cost);
         frequentFuelTextView = (TextView) findViewById(R.id.most_used_fuel_cost);
         lastUsedFuelTextView = (TextView) findViewById(R.id.last_fuel_cost);
 
-
-        currentFuelTextview.setTypeface(segment7);
+        currentFuelEditText.setTypeface(segment7);
         currentRateTextView.setTypeface(segment7);
         currentLitresTextView.setTypeface(segment7);
         favouriteFuelTextView.setTypeface(segment7);
         frequentFuelTextView.setTypeface(segment7);
         lastUsedFuelTextView.setTypeface(segment7);
 
-
-        CURRENT_COST = Double.parseDouble(currentFuelTextview.getText().toString());
+        CURRENT_COST = Double.parseDouble(currentFuelEditText.getText().toString());
         CURRENT_LITRES = Double.parseDouble(currentLitresTextView.getText().toString());
         CURRENT_RATE = Double.parseDouble(currentRateTextView.getText().toString());
 
-        //getCurrentRate();
+        database = (new FuelDbHelper(getApplicationContext())).getWritableDatabase();
+        dialogBuilder = new AlertDialog.Builder(this);
+
         getAllData();
 
-        database = (new FuelDbHelper(getApplicationContext())).getWritableDatabase();
-
-        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
         if (!sharedPreferences.contains("FuelType"))
@@ -367,10 +307,10 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         startService(new Intent(this, NotificationService.class));
 
-//        currentFuelTextview.setText(removeRupeeSymbol(CURRENT_FAVOURITE);
+//        currentFuelEditText.setText(removeRupeeSymbol(CURRENT_FAVOURITE);
 //        CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
 //        currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
-        currentFuelTextview.addTextChangedListener(new TextWatcher() {
+        currentFuelEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 if (s.length() > 1) {
@@ -463,21 +403,21 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         favouriteFuelTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentFuelTextview.setText(removeRupeeSymbol(favouriteFuelTextView.getText().toString()));
+                currentFuelEditText.setText(removeRupeeSymbol(favouriteFuelTextView.getText().toString()));
             }
         });
 
         lastUsedFuelTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentFuelTextview.setText(removeRupeeSymbol(lastUsedFuelTextView.getText().toString()));
+                currentFuelEditText.setText(removeRupeeSymbol(lastUsedFuelTextView.getText().toString()));
             }
         });
 
         frequentFuelTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentFuelTextview.setText(removeRupeeSymbol(frequentFuelTextView.getText().toString()));
+                currentFuelEditText.setText(removeRupeeSymbol(frequentFuelTextView.getText().toString()));
             }
         });
     }
@@ -548,7 +488,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         lastUsedFuelTextView.setText("₹" + removeAfterDecimalPoint(lastItemCost));
         favouriteFuelTextView.setText("₹" + CURRENT_FAVOURITE);
-        currentFuelTextview.setText(removeRupeeSymbol("₹" + CURRENT_FAVOURITE));
+        currentFuelEditText.setText(removeRupeeSymbol("₹" + CURRENT_FAVOURITE));
 
         CURRENT_LITRES = Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
         currentLitresTextView.setText((String.valueOf(String.format("%.2f", CURRENT_LITRES))));
@@ -603,6 +543,18 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             frequentFuelTextView.setText("₹" + String.valueOf(mC.getInt(0)));
 
         mC.close();
+
+        if(currentFuelEditText.requestFocus()) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            currentFuelEditText.setSelection(currentFuelEditText.getText().length());
+            currentFuelEditText.post(new Runnable() {
+                @Override
+                public void run() {
+                    currentFuelEditText.setSelection(currentFuelEditText.getText().length());
+                }
+            });
+        }
+        currentFuelEditText.setSelectAllOnFocus(true);
 
     }
 
@@ -818,7 +770,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     //Toast.makeText(getApplicationContext(), "Left to right swipe performed", Toast.LENGTH_SHORT).show();
                 }
 
-                if (x1 > x2) {
+                if (x1 > x2 + 100) {
                     //Toast.makeText(getApplicationContext(), "Right to left swipe performed", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(getApplicationContext(), TimelineActivity.class));
                 }
@@ -863,6 +815,10 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         onTouchEvent(e1);
         return false;
+    }
+
+    public void updateFuelType(View v){
+        fuelTypeSwitch.setChecked(v.getId() == R.id.diesel_switch);
     }
 
     String removeRupeeSymbol(String string) {

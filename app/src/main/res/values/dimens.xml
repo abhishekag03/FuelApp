@@ -1,5 +1,15 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
-    <dimen name="marker_drop_size">14dp</dimen>
+    <dimen name="marker_drop_size">18dp</dimen>
     <dimen name="marker_padding">5dp</dimen>
+    <dimen name="quick_add_btn_height">50dp</dimen>
+    <dimen name="quick_add_btn_width">100dp</dimen>
+    <dimen name="main_block_text_padding">8dp</dimen>
+    <dimen name="main_block_table_padding">5dp</dimen>
+    <dimen name="price_display_height">50dp</dimen>
+    <dimen name="other_display_height">35dp</dimen>
+    <dimen name="display_row_padding">5dp</dimen>
+    <dimen name="bottom_block_text_margin">5dp</dimen>
+    <dimen name="price_display_width">120dp</dimen>
+    <dimen name="other_display_width">100dp</dimen>
 </resources>
