@@ -9,4 +9,6 @@
     <string name="diesel">Diesel</string>
     <string name="litres">LITRES</string>
     <string name="rate">RATE</string>
+    <string name="total_money_spent">Total Money Spent: ₹%1$.2f</string>
+    <string name="empty_timeline_text">Add what you\'ve filled, to track what you\'ve spent.</string>
 </resources>

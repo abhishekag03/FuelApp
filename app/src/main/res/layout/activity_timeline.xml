@@ -20,7 +20,8 @@
         android:layout_height="75dp"
         android:layout_weight="0.01"
         app:cardCornerRadius="5dp"
-        app:cardElevation="20dp">
+        app:cardElevation="20dp"
+        android:id="@+id/total_money_view">
 
         <TextView
             android:id="@+id/total_money_spent"

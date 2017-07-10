@@ -22,7 +22,9 @@ import com.github.vipulasri.timelineview.TimelineView;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by vishaal on 30/6/17.
@@ -44,52 +46,59 @@ public class FuelAdapter extends RecyclerView.Adapter<FuelAdapter.NumberViewHold
 
     private TimelineView mTimelineView;
 
-    private int mNumberitems;
-
-
+    private List<String> mDataSet;
 
     private String DATE;
     private String DAY;
     private String TIME;
     private String MONTH;
+    private int VIEW_TYPE_EMPTY = 90009;
 
     @Override
     public NumberViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context= parent.getContext();
-        int layoutForListItem=R.layout.list_item_update;
-        LayoutInflater inflater=LayoutInflater.from(context);
-        View view= inflater.inflate(layoutForListItem, parent, false);
-        NumberViewHolder viewHolder= new NumberViewHolder(view, viewType);
-        viewHolderCount++;
-        Log.d(TAG, "onCreateViewHolder: number of ViewHolders created: "+viewHolderCount);
-        return viewHolder;
+
+        int layoutForListItem;
+
+        if(viewType == VIEW_TYPE_EMPTY){
+            layoutForListItem = R.layout.empty_timeline;
+        }else {
+            layoutForListItem = R.layout.list_item_update;
+        }
+            LayoutInflater inflater = LayoutInflater.from(context);
+            View view = inflater.inflate(layoutForListItem, parent, false);
+            NumberViewHolder viewHolder = new NumberViewHolder(view, viewType);
+            viewHolderCount++;
+            return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(NumberViewHolder holder, int position) {
 
-        Log.d(TAG, "#"+position);
+        if(holder.getItemViewType() != VIEW_TYPE_EMPTY) {
 
-        int new_position = holder.getAdapterPosition();
+            int new_position = holder.getAdapterPosition();
 
-        setDateVariables(TimelineActivity.arrayForTimelineDate.get(new_position));
-        holder.bind(TimelineActivity.arrayForTimelineCost.get(new_position), TimelineActivity.arrayForTimelineLitres.get(new_position), TimelineActivity.arrayForTimelineLocation.get(position), DAY, DATE, MONTH, TIME);
+            setDateVariables(TimelineActivity.arrayForTimelineDate.get(new_position));
+            holder.bind(TimelineActivity.arrayForTimelineCost.get(new_position), TimelineActivity.arrayForTimelineLitres.get(new_position), TimelineActivity.arrayForTimelineLocation.get(position), DAY, DATE, MONTH, TIME);
 
 
-        if(TimelineActivity.arrayForTimelineFuelType.get(new_position).equals("Petrol"))
-        {
-            mTimelineView.setMarker(holder.itemView.getResources().getDrawable(R.drawable.ic_marker_petrol));
-        }
-        else
-        {
-            mTimelineView.setMarker(holder.itemView.getResources().getDrawable(R.drawable.ic_marker));
+            if (TimelineActivity.arrayForTimelineFuelType.get(new_position).equals("Petrol")) {
+                mTimelineView.setMarker(holder.itemView.getResources().getDrawable(R.drawable.ic_marker_petrol));
+            } else {
+                mTimelineView.setMarker(holder.itemView.getResources().getDrawable(R.drawable.ic_marker));
+            }
         }
 
     }
 
     @Override
     public int getItemCount() {
-        return mNumberitems;
+        if(mDataSet.size() == 0){
+            return 1;
+        }else {
+            return mDataSet.size();
+        }
     }
 
     public interface ListItemClickListener
@@ -97,19 +106,23 @@ public class FuelAdapter extends RecyclerView.Adapter<FuelAdapter.NumberViewHold
         void onListItemClick(int clickedItemIndex);
     }
 
-    public FuelAdapter(int numberOfItems, ListItemClickListener listener, Orientation orientation, boolean withLinePadding)
+    public FuelAdapter(List<String> dataSet, ListItemClickListener listener, Orientation orientation, boolean withLinePadding)
     {
 
         mOrientation=orientation;
         mWithLinePadding=withLinePadding;
-        mNumberitems=numberOfItems;
+        mDataSet=dataSet;
         mOnClickListener=listener;
         viewHolderCount=0;
     }
 
     @Override
     public int getItemViewType(int position) {
-        return TimelineView.getTimeLineViewType(position, getItemCount());
+        if (mDataSet.size() == 0) {
+            return VIEW_TYPE_EMPTY;
+        }else {
+            return TimelineView.getTimeLineViewType(position, getItemCount());
+        }
     }
 
     class NumberViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -125,31 +138,33 @@ public class FuelAdapter extends RecyclerView.Adapter<FuelAdapter.NumberViewHold
 
         public NumberViewHolder(View itemView, int viewType) {
             super(itemView);
-            mTimelineView= (TimelineView) itemView.findViewById(R.id.time_marker);
+            if(viewType != VIEW_TYPE_EMPTY) {
+                mTimelineView = (TimelineView) itemView.findViewById(R.id.time_marker);
 
-            displayDateString= (TextView) itemView.findViewById(R.id.fuel_station_numberdate);
-            displayDayString= (TextView) itemView.findViewById(R.id.fuel_station_day);
-            displayMonthString= (TextView) itemView.findViewById(R.id.fuel_station_month);
-            displayTimeString= (TextView) itemView.findViewById(R.id.fuel_station_time);
-            displayFuelCostString= (TextView) itemView.findViewById(R.id.fuel_station_cost);
-            displayFuelLitresString= (TextView) itemView.findViewById(R.id.fuel_station_litres);
-            displayLocationString= (TextView) itemView.findViewById(R.id.fuel_station_location);
+                displayDateString = (TextView) itemView.findViewById(R.id.fuel_station_numberdate);
+                displayDayString = (TextView) itemView.findViewById(R.id.fuel_station_day);
+                displayMonthString = (TextView) itemView.findViewById(R.id.fuel_station_month);
+                displayTimeString = (TextView) itemView.findViewById(R.id.fuel_station_time);
+                displayFuelCostString = (TextView) itemView.findViewById(R.id.fuel_station_cost);
+                displayFuelLitresString = (TextView) itemView.findViewById(R.id.fuel_station_litres);
+                displayLocationString = (TextView) itemView.findViewById(R.id.fuel_station_location);
 
 
-            Typeface oratorSTD=Typeface.createFromAsset(itemView.getContext().getAssets(), "fonts/OratorStd.otf");
-            Typeface segment7=Typeface.createFromAsset(itemView.getContext().getAssets(), "fonts/Segment7Standard.otf");
+                Typeface oratorSTD = Typeface.createFromAsset(itemView.getContext().getAssets(), "fonts/OratorStd.otf");
+                Typeface segment7 = Typeface.createFromAsset(itemView.getContext().getAssets(), "fonts/Segment7Standard.otf");
 
-            displayFuelCostString.setTypeface(segment7);
-            displayFuelLitresString.setTypeface(segment7);
-            displayLocationString.setTypeface(oratorSTD);
-            displayTimeString.setTypeface(oratorSTD);
-            displayMonthString.setTypeface(oratorSTD);
+                displayFuelCostString.setTypeface(segment7);
+                displayFuelLitresString.setTypeface(segment7);
+                displayLocationString.setTypeface(oratorSTD);
+                displayTimeString.setTypeface(oratorSTD);
+                displayMonthString.setTypeface(oratorSTD);
 
-            mTimelineView.initLine(viewType);
+                mTimelineView.initLine(viewType);
 
-//            mTimelineView.setMarker(ContextCompat.getDrawable(itemView.getContext(), R.mipmap.diesel_drop));
-            mTimelineView.setMarkerSize(75);
-            itemView.setOnClickListener(this);
+                //            mTimelineView.setMarker(ContextCompat.getDrawable(itemView.getContext(), R.mipmap.diesel_drop));
+                mTimelineView.setMarkerSize(75);
+                itemView.setOnClickListener(this);
+            }
 
         }
 
@@ -171,11 +186,7 @@ public class FuelAdapter extends RecyclerView.Adapter<FuelAdapter.NumberViewHold
             mOnClickListener.onListItemClick(clickedPosition);
         }
 
-
-
     }
-
-
 
     protected void setDateVariables(String date)
     {

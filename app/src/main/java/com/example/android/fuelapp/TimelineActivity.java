@@ -21,6 +21,7 @@ import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,9 +31,13 @@ import com.example.android.fuelapp.data.FuelContract;
 import com.example.android.fuelapp.data.FuelDbHelper;
 import com.example.android.fuelapp.model.Orientation;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.RunnableFuture;
 
 public class TimelineActivity extends AppCompatActivity implements FuelAdapter.ListItemClickListener {
 
@@ -41,17 +46,12 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
     private FuelAdapter mFuelAdapter;
     private Orientation mOrientation;
     private boolean mWithLinePadding;
-
     private boolean shouldDisplayMenuDelete = true;
-
     private float x1, x2;
     private float y1, y2;
-
-
     private double totalCost = 0;
-
     public static boolean isRunning = false;
-
+    private TextView totalCostTextView;
 
     public static List<String> arrayForTimelineFuelType = new ArrayList<>();
     public static List<String> arrayForTimelineDate = new ArrayList<>();
@@ -92,13 +92,15 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
             mRecyclerView.setLayoutManager(layoutManager);
             mRecyclerView.setHasFixedSize(true);
 
+            totalCostTextView = (TextView) findViewById(R.id.total_money_spent);
+
             initView();
 
-            if ((TextView) findViewById(R.id.total_money_spent) != null) {
+            if (totalCostTextView != null) {
                 Log.d("database", "total money: " + totalCost + ", txt set");
                 Typeface oratorSTD = Typeface.createFromAsset(getAssets(), "fonts/OratorStd.otf");
-                ((TextView) findViewById(R.id.total_money_spent)).setTypeface(oratorSTD);
-                ((TextView) findViewById(R.id.total_money_spent)).setText("Total Money Spent: ₹" + totalCost);
+                totalCostTextView.setTypeface(oratorSTD);
+                totalCostTextView.setText(String.format(getString(R.string.total_money_spent), totalCost));
             }
 
             ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -120,30 +122,29 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             int position_to_remove = arrayForTimelineDate.size() - position - 1;
+                            // Update total money spent
+                            totalCost -= Double.parseDouble(arrayForTimelineCost.get(position_to_remove));
                             arrayForTimelineCost.remove(position_to_remove);  //then remove item
                             arrayForTimelineDate.remove(position_to_remove);
                             arrayForTimelineFuelType.remove(position_to_remove);
                             arrayForTimelineLitres.remove(position_to_remove);
                             arrayForTimelineLocation.remove(position_to_remove);
 
-                            Log.d("REMOVING", arrayForTimelineCost.get(position_to_remove) + " and " + arrayForTimelineDate.get(position_to_remove)
-                            + " and " + arrayForTimelineFuelType.get(position_to_remove) + " and " + arrayForTimelineLitres.get(position_to_remove));
-
-                            Log.d("Arrays:", "" + arrayForTimelineFuelType.toString() + arrayForTimelineLocation.toString());
-
                             SQLiteDatabase database = new FuelDbHelper(getApplicationContext()).getWritableDatabase();
 
-                            Cursor cursor= database.rawQuery("SELECT _id, location FROM " + FuelContract.FuelEntry.TABLE_NAME, null);
+                            Cursor cursor = database.rawQuery("SELECT _id, location FROM " + FuelContract.FuelEntry.TABLE_NAME, null);
                             cursor.moveToPosition(position_to_remove);
-                            int deleted_rows = database.delete(FuelContract.FuelEntry.TABLE_NAME, "_id = " + cursor.getInt(cursor.getColumnIndex("_id")), null );
-                            if( deleted_rows > 0)
+                            int deleted_rows = database.delete(FuelContract.FuelEntry.TABLE_NAME, "_id = " + cursor.getInt(cursor.getColumnIndex("_id")), null);
+                            if (deleted_rows > 0)
                                 Toast.makeText(getApplicationContext(), cursor.getString(cursor.getColumnIndex("location")) + " has been removed.", Toast.LENGTH_LONG).show();
                             cursor.close();
                             database.close();
 
                             mFuelAdapter.notifyItemRemoved(position_to_remove);    //notifies the RecyclerView Adapter that data in adapter has been removed at a particular position.
-//                            mFuelAdapter.notifyItemRangeChanged(position_to_remove, mFuelAdapter.getItemCount());   //notifies the RecyclerView Adapter that positions of element in adapter has been changed from position(removed element index to end of list), please update it.
                             mFuelAdapter.notifyDataSetChanged();
+
+                            totalCostTextView.setText(String.format(getString(R.string.total_money_spent), totalCost));
+                            if(totalCost == 0) (findViewById(R.id.total_money_view)).setVisibility(View.GONE);
 
                         }
                     }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
@@ -186,7 +187,7 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
     }
 
     private void initView() {
-        mFuelAdapter = new FuelAdapter(arrayForTimelineDate.size(), this, mOrientation, mWithLinePadding);
+        mFuelAdapter = new FuelAdapter(arrayForTimelineDate, this, mOrientation, mWithLinePadding);
         mRecyclerView.setAdapter(mFuelAdapter);
     }
 
@@ -277,23 +278,14 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
 
     @Override
     public void onListItemClick(int clickedItemIndex) {
-        //Toast.makeText(getApplicationContext(), arrayForTimelineLocation.get(clickedItemIndex)+" clicked", Toast.LENGTH_SHORT).show();
-        String locationToQuery = arrayForTimelineLocation.get(clickedItemIndex);
-        String dateToQuery = arrayForTimelineDate.get(clickedItemIndex);
-        String fuelTypeToQuery = arrayForTimelineFuelType.get(clickedItemIndex);
-        String costToQuery = arrayForTimelineCost.get(clickedItemIndex);
-        String litresToQuery = arrayForTimelineLitres.get(clickedItemIndex);
 
         SQLiteDatabase db = (new FuelDbHelper(getApplicationContext())).getReadableDatabase();
 
-        Cursor cursor = db.rawQuery("select * from " + FuelContract.FuelEntry.TABLE_NAME + " where " +
-
-                FuelContract.FuelEntry.COLUMN_LOCATION + "=? and " +
-                FuelContract.FuelEntry.COLUMN_FUEL_TYPE + "=? and " +
-                FuelContract.FuelEntry.COLUMN_MONEY + "=? and " +
-                FuelContract.FuelEntry.COLUMN_LITRES + "=? and " +
-                FuelContract.FuelEntry.COLUMN_TIME_FILLED + "=?", new String[]{locationToQuery, fuelTypeToQuery, costToQuery, litresToQuery, dateToQuery});
-
+        Cursor cursor = db.rawQuery("SELECT _ID FROM " + FuelContract.FuelEntry.TABLE_NAME, null);
+        cursor.moveToPosition(clickedItemIndex);
+        cursor = db.query(FuelContract.FuelEntry.TABLE_NAME,
+                new String[]{FuelContract.FuelEntry.COLUMN_LATITUDE, FuelContract.FuelEntry.COLUMN_LONGITUDE},
+                "_ID = " + cursor.getInt(0), null, null, null, null);
         String lat = "", lon = "";
 
         if (!(!cursor.moveToFirst() || cursor.getCount() == 0)) {
@@ -305,18 +297,21 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
 
         Log.d("database", "lat: " + lat + " , lon: " + lon);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        if (lat != "" && lon != "") {
 
+        if ("".equals(lat) || "".equals(lon)) {
+
+            Log.d("database", "error while opening maps.");
+            Toast.makeText(getApplicationContext(), "error while opening maps.", Toast.LENGTH_SHORT).show();
+
+        } else {
 
             Uri uri = Uri.parse("geo:0,0?q=" + lat + "," + lon + "(" + arrayForTimelineLocation.get(clickedItemIndex) + ")");
             intent.setData(uri);
             if (intent.resolveActivity(getPackageManager()) != null)
                 startActivity(intent);
-        } else {
-            Log.d("database", "error while opening maps.");
-            Toast.makeText(getApplicationContext(), "error while opening maps.", Toast.LENGTH_SHORT).show();
         }
 
+        cursor.close();
         db.close();
 
     }
@@ -350,9 +345,9 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
                 String location = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LOCATION));
                 String litres = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LITRES));
                 String cost = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_MONEY));
-                double dCost =  Double.parseDouble(cost);
+                double dCost = Double.parseDouble(cost);
 
-                if(!((dCost - (int) dCost) > 0.0))
+                if (!((dCost - (int) dCost) > 0.0))
                     cost = "" + (int) dCost;
 
                 arrayForTimelineDate.add(date);
@@ -364,7 +359,7 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
                 cursor.moveToNext();
             }
         }
-
+        cursor.close();
         database.close();
     }
 

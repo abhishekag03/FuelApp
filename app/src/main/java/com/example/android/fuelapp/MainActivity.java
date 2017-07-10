@@ -277,7 +277,6 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
                 } else {
                     sharedPreferences.edit().putString("FuelType", "Petrol").apply();
-                    ;
                     CURRENT_FUEL_TYPE = "Petrol";
                     getCurrentRate();
                     Log.d("oncheck", "petrol: " + CURRENT_RATE);
@@ -305,6 +304,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         else
             frequentFuelTextView.setText("₹" + String.valueOf(mC.getInt(0)));
 
+        mC.close();
         startService(new Intent(this, NotificationService.class));
 
 //        currentFuelEditText.setText(removeRupeeSymbol(CURRENT_FAVOURITE);
@@ -485,6 +485,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             lastItemCost = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_MONEY));
             cursor.moveToNext();
         }
+
+        cursor.close();
 
         lastUsedFuelTextView.setText("₹" + removeAfterDecimalPoint(lastItemCost));
         favouriteFuelTextView.setText("₹" + CURRENT_FAVOURITE);
@@ -709,11 +711,12 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 String litres = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LITRES));
                 String date = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_TIME_FILLED));
                 String location = cursor.getString(cursor.getColumnIndex(FuelContract.FuelEntry.COLUMN_LOCATION));
-                Log.d(TAG, fuelType + " ," + lat + " ," + lon + " ," + money + " ," + litres + " ," + date);
+                Log.d(TAG, fuelType + " ," + lat + " ," + lon + " ," + money + " ," + litres + " ," + date + ", ");
 
                 cursor.moveToNext();
             }
         }
+        cursor.close();
 
     }
 
