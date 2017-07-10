@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">FuelApp</string>
+    <string name="app_name">What The Fuel!</string>
+    <string name="save_fuel_save_money">Save Fuel, Save Money.</string>
     <string name="title_activity_main1">Main1Activity</string>
     <string name="frequent">FREQUENT</string>
     <string name="favourite">FAVOURITE</string>

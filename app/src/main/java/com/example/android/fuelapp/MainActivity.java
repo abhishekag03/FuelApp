@@ -1,9 +1,12 @@
 package com.example.android.fuelapp;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -15,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +26,7 @@ import android.os.Bundle;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.SwitchCompat;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -60,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 class MapObject {
@@ -109,10 +115,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
 
     public static HashMap<String, MapObject> mapContainingCities = new HashMap<String, MapObject>();
-
     private static boolean preferencesUpdated = false;
     SQLiteDatabase database;
-
 
     private EditText currentFuelEditText;
     private TextView currentLitresTextView;
@@ -120,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private TextView favouriteFuelTextView;
     private TextView frequentFuelTextView;
     private TextView lastUsedFuelTextView;
-
+    private TextView actionBar;
 
     private TextView priceHolder;
     private TextView litresHolder;
@@ -128,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private TextView favouriteHolder;
     private TextView frequentHolder;
     private TextView lastUsedHolder;
+    private Typeface oratorSTD;
 
     private FloatingActionButton fillButton;
     private AlertDialog.Builder dialogBuilder;
@@ -164,8 +169,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_secondary1);
-        //getSupportActionBar().hide();
+        setContentView(R.layout.activity_main);
 
         mapContainingCities.put("New Delhi", new MapObject(-1, 28.6139, 77.2090));
         mapContainingCities.put("Kolkata", new MapObject(-1, 22.5726, 88.3639));
@@ -220,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         lastUsedHolder = (TextView) findViewById(R.id.last_used_text_view);
         fuelTypeSwitch = (SwitchCompat) findViewById(R.id.switch_fuel_type);
 
-        Typeface oratorSTD = Typeface.createFromAsset(getAssets(), "fonts/OratorStd.otf");
+        oratorSTD = Typeface.createFromAsset(getAssets(), "fonts/OratorStd.otf");
         Typeface segment7 = Typeface.createFromAsset(getAssets(), "fonts/Segment7Standard.otf");
 
         priceHolder.setTypeface(oratorSTD);
@@ -238,6 +242,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         favouriteFuelTextView = (TextView) findViewById(R.id.favourite_fuel_cost);
         frequentFuelTextView = (TextView) findViewById(R.id.most_used_fuel_cost);
         lastUsedFuelTextView = (TextView) findViewById(R.id.last_fuel_cost);
+        old_location = getResources().getString(R.string.save_fuel_save_money);
 
         currentFuelEditText.setTypeface(segment7);
         currentRateTextView.setTypeface(segment7);
@@ -262,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             sharedPreferences.edit().putString("FuelType", "Petrol").apply();
 
         CURRENT_FUEL_TYPE = sharedPreferences.getString("FuelType", "Petrol");
-        CURRENT_FAVOURITE = sharedPreferences.getString("favourite", "100");
+        CURRENT_FAVOURITE = sharedPreferences.getString("favourite", "500");
 
         fuelTypeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -307,9 +312,6 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         mC.close();
         startService(new Intent(this, NotificationService.class));
 
-//        currentFuelEditText.setText(removeRupeeSymbol(CURRENT_FAVOURITE);
-//        CURRENT_LITRES=Double.parseDouble(CURRENT_FAVOURITE) / CURRENT_RATE;
-//        currentLitresTextView.setText(( String.valueOf(String.format("%.2f", CURRENT_LITRES))));
         currentFuelEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -354,20 +356,18 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
                 ContentValues cv = new ContentValues();
 
-                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.US);
                 Date date = new Date();
 
-                cv.put(FuelContract.FuelEntry.COLUMN_TIME_FILLED, dateFormat.format(date).toString());
+                cv.put(FuelContract.FuelEntry.COLUMN_TIME_FILLED, dateFormat.format(date));
                 cv.put(FuelContract.FuelEntry.COLUMN_MONEY, CURRENT_COST);
                 cv.put(FuelContract.FuelEntry.COLUMN_FUEL_TYPE, CURRENT_FUEL_TYPE);
-                cv.put(FuelContract.FuelEntry.COLUMN_LITRES, String.valueOf(String.format("%.2f", CURRENT_LITRES)));
-
+                cv.put(FuelContract.FuelEntry.COLUMN_LITRES, String.valueOf(String.format("%.2f", CURRENT_LITRES, Locale.US)));
                 cv.put(FuelContract.FuelEntry.COLUMN_LOCATION, CURRENT_LOCATION);
 
-                arrayForTimelineDate.add(dateFormat.format(date).toString());
+                arrayForTimelineDate.add(dateFormat.format(date));
                 arrayForTimelineFuelType.add(CURRENT_FUEL_TYPE);
                 arrayForTimelineLocation.add(CURRENT_LOCATION);
-                Log.d(TAG, "ContentValues inserted");
 
                 if (mCurrentLocation != null) {
                     cv.put(FuelContract.FuelEntry.COLUMN_LATITUDE, mCurrentLocation.getLatitude());
@@ -379,23 +379,20 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                         dialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
-                                //Toast.makeText(getApplicationContext(), "You need to switch on Location.", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
                             }
                         }).setNegativeButton("Cancel", null);
                         a = dialogBuilder.create();
                     } else if (!a.isShowing())
                         a.show();
-
-                    //Toast.makeText(getApplicationContext(), "mCurrentLocation is null", Toast.LENGTH_SHORT).show();
                 }
                 long id = database.insert(FuelContract.FuelEntry.TABLE_NAME, null, cv);
                 getAllData();
                 if (id <= 0) {
-                    Toast.makeText(getApplicationContext(), "Could not add data.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Sorry! Could not add fuel to your timeline.", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(getApplicationContext(), "Succesfully added data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), String.valueOf(String.format("%.2f", CURRENT_LITRES, Locale.US)) + " ltrs of " + CURRENT_FUEL_TYPE + " have been added to your timeline", Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(MainActivity.this, TimelineActivity.class));
                 }
             }
         });
@@ -420,6 +417,12 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 currentFuelEditText.setText(removeRupeeSymbol(frequentFuelTextView.getText().toString()));
             }
         });
+        actionBar= (TextView) findViewById(R.id.app_bar_main_view);
+        actionBar.setTypeface(oratorSTD);
+        actionBar.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        actionBar.setSingleLine(true);
+        actionBar.setSelected(true);
+        actionBar.setMarqueeRepeatLimit(-1);
     }
 
     /*  Returns a dialog to address the provided errorCode. The returned dialog displays a localized
@@ -558,6 +561,33 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         }
         currentFuelEditText.setSelectAllOnFocus(true);
 
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(mMessageReceiver,
+                        new IntentFilter("location_update_intent_filter"));
+
+    }
+
+    private String old_location;
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            if(CURRENT_LOCATION != null && !old_location.equals(CURRENT_LOCATION)) {
+                // Extract data included in the Intent
+                if (intent.getBooleanExtra("location_changed", false)) {
+                    actionBar.setText("@" + CURRENT_LOCATION);
+                    old_location = CURRENT_LOCATION;
+                }
+                else
+                    actionBar.setText(R.string.save_fuel_save_money);
+            }
+        }
+    };
+
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        super.onPause();
     }
 
     @Override

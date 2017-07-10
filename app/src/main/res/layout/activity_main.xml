@@ -52,7 +52,6 @@
                         android:columnCount="2"
                         android:rowCount="3">
 
-
                         <TextView
                             android:id="@+id/price_text_view"
                             android:layout_width="wrap_content"
@@ -61,7 +60,7 @@
                             android:padding="@dimen/main_block_text_padding"
                             android:text="@string/price"
                             android:textColor="@color/black"
-                            android:textSize="25sp" />
+                            android:textSize="28sp" />
 
                         <EditText
                             android:id="@+id/current_fuel_cost"

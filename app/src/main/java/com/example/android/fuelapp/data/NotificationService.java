@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.NotificationCompat;
@@ -242,6 +243,10 @@ public class NotificationService extends Service implements com.google.android.g
         MainActivity.mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         getPlace();
+        // The string "new_location_intent_filter" will be used to filer the intent
+        Intent intent = new Intent("location_update_intent_filter");
+        intent.putExtra("location_changed", true);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     protected void getPlace() {

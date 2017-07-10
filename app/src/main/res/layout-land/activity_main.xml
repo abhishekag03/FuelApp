@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,135 +11,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black"
-        android:orientation="horizontal">
-
-        <android.support.v7.widget.CardView
-            android:id="@+id/main_block"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:elevation="15dp"
-            app:cardBackgroundColor="@color/mainBlock"
-            app:cardElevation="15dp">
-
-
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="10dp"
-                android:layout_marginLeft="40dp"
-                android:layout_marginRight="40dp"
-                android:layout_marginTop="10dp"
-                app:cardBackgroundColor="@color/black"
-                app:cardCornerRadius="10dp"
-                app:contentPadding="7.5dp">
-
-                <android.support.v7.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:padding="10dp"
-                    app:cardBackgroundColor="@color/screenColor"
-                    app:cardCornerRadius="10dp"
-                    app:contentPaddingBottom="10dp"
-                    app:contentPaddingLeft="20dp"
-                    app:contentPaddingRight="20dp"
-                    app:contentPaddingTop="10dp">
-
-                    <GridLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:columnCount="2"
-                        android:rowCount="3">
-
-
-                        <TextView
-                            android:id="@+id/price_text_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="right"
-                            android:padding="@dimen/main_block_text_padding"
-                            android:text="@string/price"
-                            android:textColor="@color/black"
-                            android:textSize="25sp" />
-
-                        <EditText
-                            android:id="@+id/current_fuel_cost"
-                            android:layout_width="@dimen/price_display_width"
-                            android:layout_height="@dimen/price_display_height"
-                            android:layout_gravity="left|center_vertical"
-                            android:background="@drawable/display_bg"
-                            android:focusable="true"
-                            android:gravity="center"
-                            android:inputType="number|none"
-                            android:minEms="3"
-                            android:maxLength="3"
-                            android:text="1000"
-                            android:textColor="@color/black"
-                            android:textSize="32sp"
-                            android:selectAllOnFocus="true"
-                            android:layout_marginTop="2dp"/>
-
-                        <TextView
-                            android:id="@+id/litres_text_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="right"
-                            android:padding="@dimen/main_block_text_padding"
-                            android:text="@string/litres"
-                            android:textColor="@color/black"
-                            android:textSize="22sp" />
-
-                        <TextView
-                            android:id="@+id/current_fuel_litres"
-                            android:layout_width="@dimen/other_display_width"
-                            android:layout_height="@dimen/other_display_height"
-                            android:layout_gravity="left|center_vertical"
-                            android:gravity="center"
-                            android:background="@drawable/display_bg"
-                            android:paddingLeft="5dp"
-                            android:paddingRight="5dp"
-                            android:text="7.78"
-                            android:textColor="@color/black"
-                            android:textSize="25sp" />
-
-                        <TextView
-                            android:id="@+id/rate_text_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="right"
-                            android:padding="@dimen/main_block_text_padding"
-                            android:text="@string/rate"
-                            android:textColor="@color/black"
-                            android:textSize="22sp" />
-
-                        <TextView
-                            android:id="@+id/current_fuel_rate"
-                            android:layout_width="@dimen/other_display_width"
-                            android:layout_height="@dimen/other_display_height"
-                            android:layout_gravity="left|center_vertical"
-                            android:background="@drawable/display_bg"
-                            android:gravity="center"
-                            android:paddingLeft="5dp"
-                            android:paddingRight="5dp"
-                            android:text="64.2"
-                            android:textColor="@color/black"
-                            android:textSize="22sp" />
-
-                    </GridLayout>
-
-                </android.support.v7.widget.CardView>
-
-            </android.support.v7.widget.CardView>
-
-        </android.support.v7.widget.CardView>
-
-
-
-
+        android:orientation="horizontal"
+        android:layout_above="@+id/fuel_switch_layout">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
@@ -236,46 +113,167 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="20dp"
-                android:layout_gravity="center_horizontal|bottom"
-                android:layout_weight="0.08"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/petrol_switch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:onClick="updateFuelType"
-                    android:padding="5dp"
-                    android:text="@string/petrol"
-                    android:textColor="@color/themeYellow"
-                    android:textSize="20sp" />
-
-                <android.support.v7.widget.SwitchCompat
-                    android:id="@+id/switch_fuel_type"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:theme="@style/Color1SwitchStyle" />
-
-                <TextView
-                    android:id="@+id/diesel_switch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:onClick="updateFuelType"
-                    android:padding="5dp"
-                    android:text="@string/diesel"
-                    android:textColor="@color/diesel"
-                    android:textSize="20sp" />
-
-            </LinearLayout>
-
         </LinearLayout>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/main_block"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:elevation="15dp"
+            app:cardBackgroundColor="@color/mainBlock"
+            app:cardElevation="15dp">
+
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="10dp"
+                app:cardBackgroundColor="@color/black"
+                app:cardCornerRadius="10dp"
+                app:contentPadding="7.5dp">
+
+                <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:padding="10dp"
+                    app:cardBackgroundColor="@color/screenColor"
+                    app:cardCornerRadius="10dp"
+                    app:contentPaddingBottom="10dp"
+                    app:contentPaddingLeft="20dp"
+                    app:contentPaddingRight="20dp"
+                    app:contentPaddingTop="10dp">
+
+                    <GridLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:columnCount="2"
+                        android:rowCount="3">
+
+                        <TextView
+                            android:id="@+id/price_text_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:padding="@dimen/main_block_text_padding"
+                            android:text="@string/price"
+                            android:textColor="@color/black"
+                            android:textSize="28sp" />
+
+                        <EditText
+                            android:id="@+id/current_fuel_cost"
+                            android:layout_width="@dimen/price_display_width"
+                            android:layout_height="@dimen/price_display_height"
+                            android:layout_gravity="left|center_vertical"
+                            android:background="@drawable/display_bg"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:inputType="number|none"
+                            android:minEms="3"
+                            android:maxLength="3"
+                            android:text="1000"
+                            android:textColor="@color/black"
+                            android:textSize="32sp"
+                            android:selectAllOnFocus="true"
+                            android:layout_marginTop="2dp"/>
+
+                        <TextView
+                            android:id="@+id/litres_text_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:padding="@dimen/main_block_text_padding"
+                            android:text="@string/litres"
+                            android:textColor="@color/black"
+                            android:textSize="22sp" />
+
+                        <TextView
+                            android:id="@+id/current_fuel_litres"
+                            android:layout_width="@dimen/other_display_width"
+                            android:layout_height="@dimen/other_display_height"
+                            android:layout_gravity="left|center_vertical"
+                            android:gravity="center"
+                            android:background="@drawable/display_bg"
+                            android:paddingLeft="5dp"
+                            android:paddingRight="5dp"
+                            android:text="7.78"
+                            android:textColor="@color/black"
+                            android:textSize="25sp" />
+
+                        <TextView
+                            android:id="@+id/rate_text_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:padding="@dimen/main_block_text_padding"
+                            android:text="@string/rate"
+                            android:textColor="@color/black"
+                            android:textSize="22sp" />
+
+                        <TextView
+                            android:id="@+id/current_fuel_rate"
+                            android:layout_width="@dimen/other_display_width"
+                            android:layout_height="@dimen/other_display_height"
+                            android:layout_gravity="left|center_vertical"
+                            android:background="@drawable/display_bg"
+                            android:gravity="center"
+                            android:paddingLeft="5dp"
+                            android:paddingRight="5dp"
+                            android:text="64.2"
+                            android:textColor="@color/black"
+                            android:textSize="22sp" />
+
+                    </GridLayout>
+
+                </android.support.v7.widget.CardView>
+
+            </android.support.v7.widget.CardView>
+
+        </android.support.v7.widget.CardView>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:id="@+id/fuel_switch_layout">
+
+        <TextView
+            android:id="@+id/petrol_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:onClick="updateFuelType"
+            android:padding="5dp"
+            android:text="@string/petrol"
+            android:textColor="@color/themeYellow"
+            android:textSize="20sp" />
+
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_fuel_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:theme="@style/Color1SwitchStyle" />
+
+        <TextView
+            android:id="@+id/diesel_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:onClick="updateFuelType"
+            android:padding="5dp"
+            android:text="@string/diesel"
+            android:textColor="@color/diesel"
+            android:textSize="20sp" />
 
     </LinearLayout>
 
@@ -284,10 +282,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
         android:layout_margin="@dimen/fab_margin"
         android:background="@color/colorPrimaryDark"
         android:elevation="30dp"
         app:backgroundTint="@color/themeYellow"
         app:srcCompat="@drawable/ic_fuel_icon" />
 
-</FrameLayout>
+</RelativeLayout>
