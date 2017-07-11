@@ -13,6 +13,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -51,6 +53,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.android.fuelapp.data.FuelContract;
 import com.example.android.fuelapp.data.FuelDbHelper;
+import com.example.android.fuelapp.data.MapObject;
+import com.example.android.fuelapp.data.NetworkChangeReceiver;
 import com.example.android.fuelapp.data.NotificationService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -59,6 +63,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,18 +72,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-class MapObject {
-    double distance;
-    double latitude;
-    double longitude;
-
-    public MapObject(double d, double lat, double lon) {
-        this.distance = d;
-        this.latitude = lat;
-        this.longitude = lon;
-    }
-}
 
 public class MainActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -99,18 +92,18 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
     private float x1, x2;
     private float y1, y2;
-    private AlertDialog a;
+    public static AlertDialog a;
     private SwitchCompat fuelTypeSwitch;
 
     public static String CURRENT_LOCATION;
-    private double CURRENT_COST;
-    private double CURRENT_PETROL_RATE;
-    private double CURRENT_DIESEL_RATE;
-    private double CURRENT_RATE;
-    private String CURRENT_FUEL_TYPE;
-    private double CURRENT_LITRES;
-    private String CURRENT_FAVOURITE;
-    private String CURRENT_CITY = "";
+    public static double CURRENT_COST;
+    public static double CURRENT_PETROL_RATE;
+    public static double CURRENT_DIESEL_RATE;
+    public static double CURRENT_RATE;
+    public static String CURRENT_FUEL_TYPE;
+    public static double CURRENT_LITRES;
+    public static String CURRENT_FAVOURITE;
+    public static String CURRENT_CITY = "";
     private SharedPreferences sharedPreferences = null;
 
 
@@ -118,12 +111,15 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private static boolean preferencesUpdated = false;
     SQLiteDatabase database;
 
-    private EditText currentFuelEditText;
-    private TextView currentLitresTextView;
-    private TextView currentRateTextView;
-    private TextView favouriteFuelTextView;
-    private TextView frequentFuelTextView;
-    private TextView lastUsedFuelTextView;
+    public static EditText currentFuelEditText;
+    public static TextView currentLitresTextView;
+    public static TextView currentRateTextView;
+    public static  TextView favouriteFuelTextView;
+    public static TextView frequentFuelTextView;
+    public static TextView lastUsedFuelTextView;
+
+    private NetworkChangeReceiver networkReceiver;
+
     private TextView actionBar;
 
     private TextView priceHolder;
@@ -135,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private Typeface oratorSTD;
 
     private FloatingActionButton fillButton;
-    private AlertDialog.Builder dialogBuilder;
+    public static AlertDialog.Builder dialogBuilder;
 
     private void askForPermission(final String permission, final Integer requestCode) {
         if (ContextCompat.checkSelfPermission(MainActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -170,6 +166,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        networkReceiver=new NetworkChangeReceiver();
 
         mapContainingCities.put("New Delhi", new MapObject(-1, 28.6139, 77.2090));
         mapContainingCities.put("Kolkata", new MapObject(-1, 22.5726, 88.3639));
@@ -535,9 +534,23 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         }
     }
 
+
+    public boolean isNetworkConnected() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        }
+        return false;
+    }
+
+
     @Override
     protected void onResume() {
         super.onResume();
+        IntentFilter filter=new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkReceiver, filter);
         database = new FuelDbHelper(getApplicationContext()).getReadableDatabase();
 
         Cursor mC = database.rawQuery("SELECT money FROM(SELECT COUNT(money) AS c, money FROM fuel GROUP BY money order by c DESC LIMIT 1)", null);
@@ -584,11 +597,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         }
     };
 
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
-        super.onPause();
-    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -714,6 +723,14 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         );
         queue.add(getRequest);
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        unregisterReceiver(networkReceiver);
+    }
+
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
