@@ -80,12 +80,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     public static List<String> arrayForTimelineFuelType = new ArrayList<>();
     public static List<String> arrayForTimelineDate = new ArrayList<>();
     public static List<String> arrayForTimelineLocation = new ArrayList<>();
-
     public String TAG = "database";
-
     public static boolean isRunning = false;
-    private static boolean CURRENT_LOCATION_IS_FUEL_STATION = false;
-
     public final static String EXTRA_ORIENTATION = "EXTRA_ORIENTATION";
     public final static String EXTRA_WITH_LINE_PADDING = "EXTRA_WITH_LINE_PADDING";
     public static Location mCurrentLocation;
@@ -105,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     public static String CURRENT_FAVOURITE;
     public static String CURRENT_CITY = "";
     private SharedPreferences sharedPreferences = null;
-
 
     public static HashMap<String, MapObject> mapContainingCities = new HashMap<String, MapObject>();
     private static boolean preferencesUpdated = false;
@@ -460,11 +455,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                     CURRENT_FUEL_TYPE = "Diesel";
                     getCurrentRate();
                     Log.d("oncheck", "diesel: " + CURRENT_RATE);
-                    //diesel
-
                 } else {
                     android.preference.PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("FuelType", "Petrol").apply();
-                    ;
                     CURRENT_FUEL_TYPE = "Petrol";
                     getCurrentRate();
                     Log.d("oncheck", "petrol: " + CURRENT_RATE);
