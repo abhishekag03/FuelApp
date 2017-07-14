@@ -616,6 +616,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         } else if (id == R.id.action_timeline) {
             startActivity(new Intent(getApplicationContext(), TimelineActivity.class));
         }
+        else if(id==R.id.action_about){
+            startActivity(new Intent(getApplicationContext(), AboutActivity.class));
+        }
         return super.onOptionsItemSelected(item);
     }
 

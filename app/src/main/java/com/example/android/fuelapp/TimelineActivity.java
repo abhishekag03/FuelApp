@@ -103,7 +103,7 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
                 totalCostTextView.setText(String.format(getString(R.string.total_money_spent), totalCost));
             }
 
-            ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, (ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT)) {
 
                 @Override
                 public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -211,15 +211,15 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
                 public void onClick(DialogInterface dialog, int which) {
 
 
-                    final ProgressDialog progressDialog = new ProgressDialog(TimelineActivity.this, R.style.AppTheme);
-                    progressDialog.setIndeterminate(true);
-                    progressDialog.setMessage("Deleting Logs...");
-                    progressDialog.setCancelable(false);
-                    progressDialog.setTitle("Please Wait");
-                    progressDialog.show();
-                    Window window = progressDialog.getWindow();
-
-                    window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
+//                    final ProgressDialog progressDialog = new ProgressDialog(TimelineActivity.this, R.style.AppTheme);
+//                    progressDialog.setIndeterminate(true);
+//                    progressDialog.setMessage("Deleting Logs...");
+//                    progressDialog.setCancelable(false);
+//                    progressDialog.setTitle("Please Wait");
+//                    progressDialog.show();
+//                    Window window = progressDialog.getWindow();
+//
+//                    window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
 
 
                     new android.os.Handler().postDelayed(
@@ -246,7 +246,7 @@ public class TimelineActivity extends AppCompatActivity implements FuelAdapter.L
                                         Log.d("database", "Couldnt delete account");
                                     }
 
-                                    progressDialog.dismiss();
+                                    //progressDialog.dismiss();
                                 }
                             },
                             3000

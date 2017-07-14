@@ -27,6 +27,11 @@
             android:id="@+id/action_settings"
             android:title="Settings"/>
 
+        <item app:showAsAction="never"
+            android:icon="@drawable/ic_about_icon"
+            android:orderInCategory="3"
+            android:id="@+id/action_about"
+            android:title="About"/>
 
     </menu>
 

@@ -3,7 +3,6 @@
     package="com.example.android.fuelapp">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -31,49 +30,46 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SettingsActivity"/>
+        <activity android:name=".SettingsActivity" />
         <activity android:name=".TimelineActivity">
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <data android:scheme="geo" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
-
         </activity>
 
-        <service android:name=".data.NotificationService"
-            android:enabled="true"/>
-
+        <service
+            android:name=".data.NotificationService"
+            android:enabled="true" />
 
         <receiver
-        android:name=".data.RestartService"
-        android:enabled="true"
-        android:exported="true"
-        android:label="RestartServiceWhenStopped"
-        android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-        <intent-filter>
-
-            <action android:name="RestartService" />
-        </intent-filter>
-
-    </receiver>
-
-        <receiver android:name=".data.NetworkChangeReceiver"
+            android:name=".data.RestartService"
+            android:enabled="true"
+            android:exported="true"
+            android:label="RestartServiceWhenStopped"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="RestartService" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".data.NetworkChangeReceiver"
             android:enabled="true"
             android:exported="true"
             android:label="NetworkChangeReceiver"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
-                <action android:name="NetworkChangeReceiver"/>
+                <action android:name="NetworkChangeReceiver" />
             </intent-filter>
-
         </receiver>
 
+        <activity android:name=".AboutActivity"></activity>
     </application>
 
 </manifest>
