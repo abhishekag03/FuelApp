@@ -1,12 +1,10 @@
 package com.example.android.fuelapp.data;
 
 import android.Manifest;
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -15,20 +13,12 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PowerManager;
-import android.provider.Settings;
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
-import android.view.Window;
-import android.widget.Toast;
 
 import com.example.android.fuelapp.MainActivity;
 import com.example.android.fuelapp.R;
@@ -55,22 +45,14 @@ import java.util.List;
 
 public class NotificationService extends Service implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-
-    private static final String ACTION_SHOW_NOTIFICATION = "my.app.service.action.show";
-    private static final String ACTION_HIDE_NOTIFICATION = "my.app.service.action.hide";
     private static final int REQUEST_LOCATION_PERMISSION = 122;
-
+    private static final long INTERVAL = 10000;
+    private static final long FASTEST_INTERVAL = 5000;
+    public static boolean notificationIsSent = false;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private Location mCurrentLocation;
     private String mLastUpdateTime;
-
-    public static boolean notificationIsSent = false;
-
-
-    private static final long INTERVAL = 10000;
-    private static final long FASTEST_INTERVAL = 5000;
-
 
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
@@ -78,41 +60,6 @@ public class NotificationService extends Service implements com.google.android.g
         mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
-
-
-    private void askForPermission(final String permission, final Integer requestCode) {
-        if (ContextCompat.checkSelfPermission(new MainActivity(), permission) != PackageManager.PERMISSION_GRANTED) {
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(new MainActivity(), permission)) {
-
-                //This is called if user has denied the permission before
-                //In this case I am just asking the permission again
-
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-                alertDialog.setMessage("Location Permission is required for this app to work.");
-                alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        ActivityCompat.requestPermissions(new MainActivity(), new String[]{permission}, requestCode);
-                    }
-                });
-                alertDialog.setNegativeButton("Cancel", null);
-                AlertDialog a = alertDialog.create();
-                a.show();
-                Window window = a.getWindow();
-                window.setLayout(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
-
-
-            } else {
-
-                ActivityCompat.requestPermissions(new MainActivity(), new String[]{permission}, requestCode);
-            }
-        } else {
-            // Toast.makeText(this, "" + permission + " is already granted.", Toast.LENGTH_SHORT).show();
-            Log.d("databaseService", "" + permission + " is already granted. ");
-        }
-    }
-
 
     @Override
     public void onCreate() {
@@ -126,7 +73,6 @@ public class NotificationService extends Service implements com.google.android.g
                 .addOnConnectionFailedListener(this)
                 .build();
     }
-
 
     private void sendNotification() {
         android.support.v4.app.NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
@@ -153,7 +99,6 @@ public class NotificationService extends Service implements com.google.android.g
         mNotifymgr.notify(mNotificationId, mBuilder.build());
 
     }
-
 
     @Override
     public void onStart(@Nullable Intent intent, int startId) {
@@ -189,17 +134,13 @@ public class NotificationService extends Service implements com.google.android.g
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
         try {
-
             startLocationUpdates();
         } catch (IllegalStateException e) {
             e.printStackTrace();
             Log.d("network", e.toString());
         }
-
     }
-
 
     protected void startLocationUpdates() {
         Log.d("databaseService", String.valueOf(this instanceof LocationListener));
@@ -208,15 +149,6 @@ public class NotificationService extends Service implements com.google.android.g
 //            return;
 //        }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
-            askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
             return;
         }
         PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
@@ -251,8 +183,6 @@ public class NotificationService extends Service implements com.google.android.g
 
     protected void getPlace() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            askForPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_LOCATION_PERMISSION);
             return;
         }
 
@@ -287,7 +217,6 @@ public class NotificationService extends Service implements com.google.android.g
             }
         });
     }
-
 
     @Override
     public void onDestroy() {
