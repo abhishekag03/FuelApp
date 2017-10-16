@@ -127,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
   private FloatingActionButton fillButton;
   public static AlertDialog.Builder dialogBuilder;
 
+  private Boolean isFirstTime = false;
+
   private void askForPermission(final String permission, final Integer requestCode) {
     if (ContextCompat.checkSelfPermission(MainActivity.this, permission)
         != PackageManager.PERMISSION_GRANTED) {
@@ -417,6 +419,16 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     actionBar.setSelected(true);
     actionBar.setMarqueeRepeatLimit(-1);
 
+    isFirstTime = sharedPreferences.getBoolean("firstTime", true);
+
+    if(isFirstTime) {
+      getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+      sharedPreferences.edit().putBoolean("firstTime", false).apply();
+      new MaterialTapTargetPrompt.Builder(MainActivity.this).setTarget(fillButton)
+          .setPrimaryText("Add Fuel")
+          .setSecondaryText("Tap the button to add in fuel log")
+          .show();
+    }
   }
 
   /*  Returns a dialog to address the provided errorCode. The returned dialog displays a localized
